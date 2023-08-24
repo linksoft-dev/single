@@ -1,4 +1,4 @@
-module github.com/kissprojects/single
+module github.com/kissprojects/single/comps/go
 
 go 1.18
 

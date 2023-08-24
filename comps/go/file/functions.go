@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gocarina/gocsv"
-	"github.com/kissprojects/single/str"
+	"github.com/kissprojects/single/comps/go/str"
 	"github.com/vincent-petithory/dataurl"
 	"golang.org/x/text/encoding/charmap"
 	"io"

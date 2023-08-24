@@ -10,12 +10,12 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/kissprojects/single/file"
-	"github.com/kissprojects/single/html"
-	"github.com/kissprojects/single/number"
-	"github.com/kissprojects/single/str"
-	"github.com/kissprojects/single/validation"
-	"github.com/kissprojects/single/xml"
+	"github.com/kissprojects/single/comps/go/file"
+	"github.com/kissprojects/single/comps/go/html"
+	"github.com/kissprojects/single/comps/go/number"
+	"github.com/kissprojects/single/comps/go/str"
+	"github.com/kissprojects/single/comps/go/validation"
+	"github.com/kissprojects/single/comps/go/xml"
 )
 
 var renderTemplateFuncMap = template.FuncMap{
