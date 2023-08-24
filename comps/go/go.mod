@@ -1,4 +1,4 @@
-module github.com/waykiss/wkcomps
+module github.com/kissprojects/single
 
 go 1.18
 

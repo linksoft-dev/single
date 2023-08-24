@@ -2,8 +2,8 @@ package number
 
 import (
 	"fmt"
+	"github.com/kissprojects/single/str"
 	"github.com/shopspring/decimal"
-	"github.com/waykiss/wkcomps/str"
 	"golang.org/x/exp/constraints"
 	"strconv"
 	"strings"

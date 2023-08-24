@@ -1,8 +1,8 @@
 package cache
 
 import (
+	"github.com/kissprojects/single/cache/redis"
 	"github.com/stretchr/testify/assert"
-	"github.com/waykiss/wkcomps/cache/redis"
 	"testing"
 	"time"
 )

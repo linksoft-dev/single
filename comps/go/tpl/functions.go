@@ -10,12 +10,12 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/waykiss/wkcomps/file"
-	"github.com/waykiss/wkcomps/html"
-	"github.com/waykiss/wkcomps/number"
-	"github.com/waykiss/wkcomps/str"
-	"github.com/waykiss/wkcomps/validation"
-	"github.com/waykiss/wkcomps/xml"
+	"github.com/kissprojects/single/file"
+	"github.com/kissprojects/single/html"
+	"github.com/kissprojects/single/number"
+	"github.com/kissprojects/single/str"
+	"github.com/kissprojects/single/validation"
+	"github.com/kissprojects/single/xml"
 )
 
 var renderTemplateFuncMap = template.FuncMap{

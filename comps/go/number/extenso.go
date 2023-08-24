@@ -2,7 +2,7 @@ package number
 
 import (
 	"fmt"
-	"github.com/waykiss/wkcomps/list"
+	"github.com/kissprojects/single/list"
 	"strconv"
 	"strings"
 )

@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"github.com/waykiss/wkcomps/file"
+	"github.com/kissprojects/single/file"
 	"io"
 	"io/ioutil"
 	"os"

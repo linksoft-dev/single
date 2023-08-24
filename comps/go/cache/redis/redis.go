@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/waykiss/wkcomps/cache"
+	"github.com/kissprojects/single/cache"
 	"time"
 )
 
