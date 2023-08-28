@@ -25,3 +25,29 @@ func TestIsValidEan(t *testing.T) {
 		}
 	}
 }
+
+func TestIsCnpjRelated(t *testing.T) {
+	type testCnpjs struct {
+		cnpj1    string
+		cnpj2    string
+		expected bool
+	}
+
+	tests := []testCnpjs{
+		{"09015016000142", "09015016000223", true},
+		{"09015016000223", "09015016000142", true},
+		{"09015016000142", "08869363000250", false},
+		{"08869363000250", "09015016000142", false},
+		{"0901", "09015016000142", false},
+		{"09015016000142", "0901", false},
+		{"", "09015016000223", false},
+		{"09015016000142", "", false},
+		{"", "", false},
+	}
+	for _, test := range tests {
+		if IsCnpjRelated(test.cnpj1, test.cnpj2) != test.expected {
+			t.Errorf("Fail test for (%s) and (%s), expected : %t got: %t ",
+				test.cnpj1, test.cnpj2, !test.expected, test.expected)
+		}
+	}
+}

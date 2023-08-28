@@ -29,6 +29,16 @@ func IsEmailValid(value string) bool {
 	return err == nil
 }
 
+// IsCnpjRelated checks if there is a parent company and branch company link for the informed CNPJs
+// for Brazilian companies
+func IsCnpjRelated(cnpj1, cnpj2 string) (r bool) {
+	// if any is not valid, it must return false.
+	if !IsCnpjValid(cnpj1) || !IsCnpjValid(cnpj2) {
+		return
+	}
+	return cnpj1[:11] == cnpj2[:11]
+}
+
 // IsValidEan validates if the passed string is a valid ean code based on the number of characters in it
 func IsValidEan(str string) (r bool) {
 	if IsOnlyNumber(str) {
