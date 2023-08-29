@@ -3,7 +3,7 @@ name: Test Go components
 on:
   push:
     paths:
-      - 'comps/go'
+      - 'comps/go/**'
       - '.github/workflows/test_comps_go.yaml'
       - '!**.md' # exclude .md files
 
