@@ -1,25 +1,24 @@
-name: Test
+name: Test Go components
 
 on:
   push:
     paths:
-      - 'go'
-      - '.github/workflows/test_go.yaml'
+      - 'comps/go/**'
+      - '.github/workflows/test_comps_go.yaml'
       - '!**.md' # exclude .md files
 
 jobs:
-  test_build_image:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: rodrigorodriguescosta/branch-name@v2
 
-      # BACKEND
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.18'
+          go-version: '1.21'
 
-      - name: Run all Tests
+      - name: Run Go tests
         run: |
-          go test -v ./... -coverprofile=coverage.out
+          cd comps/go && go test -v -coverprofile=coverage.out ./...

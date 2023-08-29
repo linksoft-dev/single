@@ -3,7 +3,6 @@ package redis
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/kissprojects/single/comps/go/cache"
 	"time"
 )
 
@@ -15,8 +14,8 @@ type Cache struct {
 	db       int
 }
 
-func New(host, password string, dbNumber int) cache.Provider {
-	return &Cache{
+func New(host, password string, dbNumber int) Cache {
+	return Cache{
 		host:     host,
 		password: password,
 		db:       dbNumber,
@@ -62,7 +61,7 @@ func (c Cache) Set(key string, value interface{}, expiration time.Duration) (err
 	rdb := c.getRedisInstance()
 	r := rdb.Set(context.Background(), key, value, expiration)
 	if r.Err() != nil {
-		redisProcessError(err)
+		redisProcessError(r.Err())
 	}
 	return
 }

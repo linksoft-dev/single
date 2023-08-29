@@ -21,7 +21,7 @@ func TestSetGetDelete(t *testing.T) {
 			}
 			for _, v := range testCases {
 				t.Run(v.name, func(t *testing.T) {
-					cache := New(&provider)
+					cache := New(provider)
 					cache.Prefix = v.prefix
 					err := cache.Set(v.key, v.value, time.Second*10)
 					assert.Nil(t, err)
