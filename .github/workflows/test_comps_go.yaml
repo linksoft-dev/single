@@ -5,7 +5,6 @@ on:
     paths:
       - 'comps/go/**'
       - '.github/workflows/test_comps_go.yaml'
-      - '!**.md' # exclude .md files
 
 jobs:
   test:
