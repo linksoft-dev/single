@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/waykiss/wkcomps/validation"
+	"github.com/kissprojects/single/comps/go/validation"
 	"golang.org/x/text/language"
 )
 
@@ -19,7 +19,7 @@ func validate(m *Model) error {
 	return v.Error()
 }
 
-//checkPasswordPolicy check the password is following the policy
+// checkPasswordPolicy check the password is following the policy
 func checkPasswordPolicy(pwd string) (r error) {
 	v := validation.NewValidation(language.BrazilianPortuguese)
 	v.IsFilled("Senha", pwd, 4, 30)

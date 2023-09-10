@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"github.com/waykiss/wkgo/adapters/rest"
+	"github.com/kissprojects/single/comps/go/appflex/adapters/rest"
 	"net/http"
 )
 
-//getRoutes return the rest routers related
+// getRoutes return the rest routers related
 func getRoutes() *[]rest.RouteGroup {
 	return &[]rest.RouteGroup{
 		{
@@ -42,7 +42,7 @@ func validateTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-//register handle to receive register request
+// register handle to receive register request
 func register(w http.ResponseWriter, r *http.Request) {
 	m := Model{}
 	if err := rest.GetRequestParams(r, &m); err != nil {

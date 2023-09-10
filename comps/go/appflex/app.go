@@ -1,6 +1,7 @@
 package appflex
 
 import (
+	"github.com/kissprojects/single/comps/go/appflex/adapters/grpc"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,22 +20,25 @@ type App interface {
 // Adapter struct that define the adapter interface at abstract way
 type Adapter interface {
 	Run()
-	GetApps() []App
 }
 
 // Start function that starts all the prymary adapters
 func Start(appName string) {
 	applicationName = appName
+	defer func() {
+		log.Info("Application '%s' has been started", applicationName)
+	}()
+
 	ch := make(chan bool, 1)
 	defer func() {
-		log.Infof("Application '%s' has been started", applicationName)
-		for _, adapter := range adapters {
-			for _, app := range adapter.GetApps() {
-				app.AfterStart()
-			}
+		for _, app := range apps {
+			app.AfterStart()
 		}
 		<-ch
 	}()
+	if len(adapters) == 0 {
+		adapters = append(adapters, grpc.New("8080"))
+	}
 	for _, adapter := range adapters {
 		if adapter != nil {
 			go func() {

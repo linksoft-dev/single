@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"github.com/waykiss/wkcomps/database"
 	"log"
 	"os"
 )

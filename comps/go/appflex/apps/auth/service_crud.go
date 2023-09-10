@@ -2,8 +2,9 @@ package auth
 
 import (
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/kissprojects/single/comps/go/str"
 	log "github.com/sirupsen/logrus"
-	"github.com/waykiss/wkcomps/str"
 	"os"
 	"time"
 

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/waykiss/wkgo/adapters/rest"
+	"github.com/kissprojects/single/comps/go/appflex/adapters/rest"
 	"google.golang.org/grpc"
 	"net/http"
 )
@@ -10,7 +10,7 @@ var App AppModule
 
 type AppModule struct{}
 
-func (a AppModule) GetRouters() *[]rest.Route {
+func (a AppModule) GetRouters() *[]rest.RouteGroup {
 	return nil
 }
 

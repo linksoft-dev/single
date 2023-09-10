@@ -1,8 +1,6 @@
 package fiber
 
 import (
-	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -14,7 +12,7 @@ import (
 	"strings"
 )
 
-//adapter private structure that implement rest adapter
+// adapter private structure that implement rest adapter
 type adapter struct {
 	port string
 	apps []rest.AppInterface
@@ -28,7 +26,7 @@ func New(port string) rest.WebserverInterface {
 	return &adapter{port: port}
 }
 
-//Run method to start fiber webserver
+// Run method to start fiber webserver
 func (f adapter) Run() {
 	if webserver == nil {
 		// configs disponívels
