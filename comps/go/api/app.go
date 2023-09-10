@@ -1,13 +1,14 @@
-package appflex
+package api
 
 import (
-	"github.com/kissprojects/single/comps/go/appflex/adapters/grpc"
 	log "github.com/sirupsen/logrus"
 )
 
-var applicationName string
-var adapters []Adapter
-var apps []App
+var (
+	applicationName string
+	adapters        []Adapter
+	apps            []App
+)
 
 // App struct that define which method the app instances should have
 type App interface {
@@ -36,9 +37,7 @@ func Start(appName string) {
 		}
 		<-ch
 	}()
-	if len(adapters) == 0 {
-		adapters = append(adapters, grpc.New("8080"))
-	}
+
 	for _, adapter := range adapters {
 		if adapter != nil {
 			go func() {
@@ -48,9 +47,9 @@ func Start(appName string) {
 	}
 }
 
-// AddAdapters add the adapter to the list
-func AddAdapters(adapter ...Adapter) {
-	adapters = append(adapters, adapter...)
+// AddAdapter add the adapter to the list
+func AddAdapter(adapter Adapter) {
+	adapters = append(adapters, adapter)
 }
 func AddApp(app App) {
 	apps = append(apps, app)
