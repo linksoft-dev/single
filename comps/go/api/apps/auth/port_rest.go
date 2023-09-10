@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/kissprojects/single/comps/go/appflex/adapters/rest"
+	"github.com/kissprojects/single/comps/go/api/adapters/rest"
 	"net/http"
 )
 
