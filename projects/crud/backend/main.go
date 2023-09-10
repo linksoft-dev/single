@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/kissprojects/single/comps/go/appflex"
-	"github.com/kissprojects/single/comps/go/appflex/adapters/rest/fiber"
+	"github.com/kissprojects/single/comps/go/api"
+	"github.com/kissprojects/single/comps/go/api/adapters/rest/fiber"
+	"github.com/kissprojects/single/comps/go/api/apps/auth"
 )
 
 func main() {
-	//grpcAdapter := grpc.New("1559")
-	//grpcAdapter.Add(auth.App)
 	restAdapter := fiber.New("8000")
-	appflex.AddAdapters(restAdapter)
-	appflex.AddApp(auth.App)
-	appflex.Start("crud-sample")
+	api.AddAdapters(restAdapter)
+
+	api.AddApp(auth.App)
+	api.Start("crud-sample")
 }
