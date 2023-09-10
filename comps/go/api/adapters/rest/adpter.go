@@ -1,13 +1,13 @@
 package rest
 
 import (
-	"github.com/kissprojects/single/comps/go/appflex"
+	"github.com/kissprojects/single/comps/go/api"
 	"net/http"
 )
 
 // AppInterface interface that define the interface of App for Rest adapter
 type AppInterface interface {
-	appflex.App
+	api.App
 	GetRouters() *[]Route
 	GetRouterGroup() *[]RouteGroup
 	GetMiddlewares() []func(http.Handler) http.Handler
@@ -17,7 +17,7 @@ type AppInterface interface {
 type WebserverInterface interface {
 	Run()
 	Add(app AppInterface)
-	GetApps() []appflex.App
+	GetApps() []api.App
 }
 
 type RouteGroup struct {
