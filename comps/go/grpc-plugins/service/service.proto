@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package kissproject.single.service;
+import "google/protobuf/descriptor.proto";
+
+option go_package = "kissprojects/single/grpc-plugins/service";
+
+extend google.protobuf.ServiceOptions {
+  bool crud = 1000;
+}
+
