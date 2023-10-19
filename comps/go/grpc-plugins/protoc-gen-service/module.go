@@ -1,12 +1,12 @@
-package main
+package genservice
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/kissprojects/single/comps/go/grpc-plugins/protoc-gen-service/pb"
 	pgs "github.com/lyft/protoc-gen-star"
 	pgsgo "github.com/lyft/protoc-gen-star/lang/go"
 	"os"
-	"service/pb"
 	"text/template"
 )
 
@@ -63,7 +63,7 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 		return
 	}
 
-	p := "/home/dev/projects/single/comps/go/grpc-plugins/service/template.txt"
+	p := "/home/dev/projects/single/comps/go/grpc-plugins/service/template_server.go.tmpl"
 	templateContent, err := os.ReadFile(p)
 	tpl, err := template.New("template_server.go.tmpl").Parse(string(templateContent))
 	//tpl := template.Must(tpl22.ParseFiles(p))
