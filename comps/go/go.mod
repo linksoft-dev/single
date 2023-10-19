@@ -13,6 +13,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20220914091333-ceebdd90b590
 	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/golang/protobuf v1.5.3
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/osamingo/checkdigit v1.0.1
 	github.com/rodrigorodriguescosta/govalidator v0.0.0-20190424111038-f61b66f89f4a
@@ -45,7 +46,6 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/uuid v1.3.1 // indirect
-	github.com/googleapis/googleapis v0.0.0-20230908211809-15b48f9ed0ae // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -60,6 +60,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/tdewolff/parse/v2 v2.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
@@ -68,9 +69,10 @@ require (
 	github.com/valyala/fasthttp v1.49.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
