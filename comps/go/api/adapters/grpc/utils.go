@@ -82,11 +82,13 @@ func generatePBFiles() error {
 
 				// Command to generate .pb.go files with gRPC and regular protobuf support
 				err = system.RunCommand("protoc",
-					"--grpc-gateway_out=:"+pbDir,               // Use --go-grpc_out for gRPC
-					"--grpc-gateway_opt paths=source_relative", // Option to keep paths relative for gRPC
-					"--go_out=:"+pbDir,                         // Use --go_out for regular protobuf
-					"--go_opt=paths=source_relative",           // Option to keep paths relative to regular protobuf
+					//"--grpc-gateway_out=:"+pbDir,               // Use --go-grpc_out for gRPC
+					//"--grpc-gateway_opt paths=source_relative", // Option to keep paths relative for gRPC
+					"--go_out=:"+pbDir,               // Use --go_out for regular protobuf
+					"--go_opt=paths=source_relative", // Option to keep paths relative to regular protobuf
 					"--proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos",
+					//"--proto_path=/home/dev/projects/single/comps/go/grpc-plugins/service",
+					"--proto_path=/home/dev/projects/single/comps/go",
 					"--proto_path="+dir,
 					protoPath,
 				)
@@ -104,6 +106,18 @@ func generatePBFiles() error {
 					"--proto_path="+dir,
 					protoPath,
 				)
+
+				// generate servers using protoc-gen-service plugin
+				err = system.RunCommand("protoc -I . ",
+					"--service_out=:"+pbDir,
+					"--service_opt paths=source_relative",
+					"--proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos",
+					"--proto_path=/home/dev/projects/single/comps/go",
+					"--proto_path=/home/dev/projects/single/comps/go/grpc-plugins/service",
+					"--proto_path="+dir,
+					protoPath,
+				)
+
 				if err != nil {
 					return err
 				}
