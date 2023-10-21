@@ -21,12 +21,14 @@ var (
 )
 
 func New(port string) Adapter {
+	if port == "" {
+		port = "8080"
+	}
 	SetPort(port)
 	return Adapter{port: port, GeneratePB: true, RunHttpServer: true}
 }
 
 func SetPort(port string) {
-
 	ServerEndpoint = "localhost:" + port
 }
 
@@ -39,7 +41,6 @@ type AppI interface {
 // Adapter struct to save apps that implement grpc adapters and set port that grpc server should run
 type Adapter struct {
 	port          string
-	GeneratePB    bool
 	RunHttpServer bool
 	apps          []AppI
 }
@@ -88,13 +89,6 @@ func (g Adapter) Run() error {
 	}()
 
 	eg := errgroup.Group{}
-
-	if g.GeneratePB {
-		eg.Go(func() error {
-			InstallProtocPlugins()
-			return generatePBFiles()
-		})
-	}
 
 	if g.RunHttpServer {
 		eg.Go(func() error {
