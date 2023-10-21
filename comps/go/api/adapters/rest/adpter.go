@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/graphql-go/graphql"
 	"github.com/kissprojects/single/comps/go/api"
 	"net/http"
 )
@@ -11,13 +12,15 @@ type AppInterface interface {
 	GetRouters() *[]Route
 	GetRouterGroup() *[]RouteGroup
 	GetMiddlewares() []func(http.Handler) http.Handler
+	GetGraphQLQueries() *graphql.Fields
+	GetGraphQLMutations() *graphql.Fields
 }
 
 // WebserverInterface interface that defines the adapter
 type WebserverInterface interface {
 	Run()
-	Add(app AppInterface)
-	GetApps() []api.App
+	AddApp(app AppInterface)
+	GetApps() []AppInterface
 }
 
 type RouteGroup struct {
