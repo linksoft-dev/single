@@ -26,7 +26,7 @@ func (a AppModule) Register(_ *grpc.Server) {
 
 }
 
-func (a AppModule) AfterLoad() {}
+func (a AppModule) BeforeStart() {}
 
 func (a AppModule) AfterStart() {
 	AddPublicRouter(http.MethodPost, "/users/login")
