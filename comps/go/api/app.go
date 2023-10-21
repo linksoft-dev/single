@@ -6,9 +6,7 @@ import (
 )
 
 var (
-	applicationName string
-	adapters        []Adapter
-	apps            []App
+	adapters []Adapter
 )
 
 // App struct that define which method the app instances should have
@@ -29,6 +27,20 @@ type Adapter interface {
 // Start function that starts all the primary adapters
 func Start(appName string) {
 	log.Infof("Starting API '%s'", appName)
+
+	// save the app memory address to avoid call app events more than one time when the app is being used from more
+	// than one adapter
+	apps := map[App]App{}
+
+	for idx := range adapters {
+		adapter := adapters[idx]
+		for _, app := range adapter.GetApps() {
+			if apps[app] != nil {
+				continue
+			}
+			apps[app] = app
+		}
+	}
 
 	log.Info("Executing BeforeStart events")
 	for _, app := range apps {
@@ -72,7 +84,4 @@ func Start(appName string) {
 // AddAdapter add the adapter to the list
 func AddAdapter(adapter Adapter) {
 	adapters = append(adapters, adapter)
-}
-func AddApp(app App) {
-	apps = append(apps, app)
 }
