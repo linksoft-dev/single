@@ -61,6 +61,19 @@ func readBody(body io.ReadCloser) (resp []byte, err error) {
 	return
 }
 
+func ReadBody(body io.ReadCloser) []byte {
+	if body == nil {
+		return nil
+	}
+	b, err := io.ReadAll(body)
+	if err != nil {
+		logrus.WithError(err).Warnf("was not possible to parse response body")
+	}
+	bodyStr := string(b)
+	body = io.NopCloser(strings.NewReader(bodyStr))
+	return b
+}
+
 // Request realiza uma request e joga o resultado da request para o parametro `dest`
 func (r *Request) Request(method, urlAddress string, headers map[string]string, params,
 	dest interface{}) (resp *Response, err error) {
