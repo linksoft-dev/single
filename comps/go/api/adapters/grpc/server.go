@@ -25,7 +25,7 @@ func New(port string) Adapter {
 		port = "8080"
 	}
 	SetPort(port)
-	return Adapter{port: port, GeneratePB: true, RunHttpServer: true}
+	return Adapter{port: port, RunHttpServer: true}
 }
 
 func SetPort(port string) {
