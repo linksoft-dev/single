@@ -13,11 +13,9 @@ import (
 )
 
 var (
-	// command-line options:
-	// gRPC server endpoint
-	GrpcServerEndpoint = "localhost:8080"
-	grpcPort           = "8080"
-	mux                = runtime.NewServeMux()
+	ServerEndpoint = "localhost:8080"
+
+	mux = runtime.NewServeMux()
 )
 
 func New(port string) Adapter {
@@ -26,25 +24,23 @@ func New(port string) Adapter {
 }
 
 func SetPort(port string) {
-	grpcPort = port
-	GrpcServerEndpoint = "localhost:" + port
-}
-func GetPort() string {
-	return grpcPort
+
+	ServerEndpoint = "localhost:" + port
 }
 
-type appInterface interface {
+type AppI interface {
 	api.App
 	Register(grpcServer *grpc.Server, mux *runtime.ServeMux) error
+	GetInterceptor() grpc.UnaryServerInterceptor
 }
 
 // Adapter struct to save apps that implement grpc adapters and set port that grpc server should run
 type Adapter struct {
 	port string
-	apps []appInterface
+	apps []AppI
 }
 
-func (g *Adapter) Add(app appInterface) {
+func (g *Adapter) Add(app AppI) {
 	g.apps = append(g.apps, app)
 }
 
@@ -55,7 +51,20 @@ func (g Adapter) Run() {
 	if err != nil {
 		log.Fatalf("failed to listen on %s: %v", g.port, err)
 	}
-	grpcServer := grpc.NewServer()
+
+	// add interceptors from all apps
+	var interceptors []grpc.ServerOption
+	for _, app := range g.apps {
+		interceptor := app.GetInterceptor()
+		if interceptor == nil {
+			continue
+		}
+		interceptors = append(interceptors, grpc.UnaryInterceptor(interceptor))
+	}
+
+	grpcServer := grpc.NewServer(
+		interceptors...,
+	)
 
 	// register all apps
 	for _, app := range g.apps {
