@@ -11,7 +11,6 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gocarina/gocsv v0.0.0-20220914091333-ceebdd90b590
-	github.com/gofiber/adaptor/v2 v2.1.25
 	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/golang/protobuf v1.5.3
 	github.com/graphql-go/graphql v0.8.1
@@ -31,6 +30,7 @@ require (
 	github.com/waykiss/wkgo v0.0.0-20220826032256-e773e24f7ad2
 	golang.org/x/crypto v0.13.0
 	golang.org/x/exp v0.0.0-20220823124025-807a23277127
+	golang.org/x/sync v0.3.0
 	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.58.0
 	google.golang.org/protobuf v1.31.0
