@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/graphql-go/handler"
+	"github.com/kissprojects/single/comps/go/api"
 	"github.com/kissprojects/single/comps/go/api/adapters/rest"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -16,18 +17,16 @@ import (
 
 var fiberApp *fiber.App
 
-func New(port string) rest.WebserverInterface {
-	return &Adapter{port: port}
+func New(port, prefix string, config fiber.Config) *Adapter {
+	return &Adapter{port: port, prefix: prefix, config: config}
 }
 
 // Adapter struct to save apps that implement grpc adapters and set port that grpc server should run
 type Adapter struct {
-	port string
-	apps []rest.AppInterface
-}
-
-func (g *Adapter) GetApps() []rest.AppInterface {
-	return g.apps
+	port   string
+	prefix string
+	apps   []rest.AppInterface
+	config fiber.Config
 }
 
 func (g *Adapter) AddApp(app rest.AppInterface) {
@@ -36,13 +35,10 @@ func (g *Adapter) AddApp(app rest.AppInterface) {
 
 const apiPrefix = "/api"
 
-func (g Adapter) Run() {
+func (g *Adapter) Run() error {
+
 	if fiberApp == nil {
-		// configs disponívels
-		fiberApp = fiber.New(
-			fiber.Config{
-				BodyLimit: 40 * 1024 * 1024, // 40 mb de limite na resposta
-			})
+		fiberApp = fiber.New(g.config)
 
 		apiGroup := fiberApp.Group(apiPrefix)
 		staticGroup := fiberApp.Group("/")
@@ -64,7 +60,7 @@ func (g Adapter) Run() {
 			if restRouters != nil {
 				for _, route := range *restRouters {
 					apiGroup.Add(route.Method, route.Path, adaptor.HTTPHandlerFunc(route.Handler))
-					log.Info("Adding route", map[string]interface{}{"Route": "/api" + route.Path})
+					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": "/api" + route.Path})
 				}
 			}
 
@@ -81,17 +77,35 @@ func (g Adapter) Run() {
 					rootMutation.AddFieldConfig(key, value)
 				}
 			}
-
-			app.AfterLoad()
 		}
 		createGraphQlSchema()
 		fiberGraphQLHandler(apiGroup)
+		go func() {
+			log.Fatal(fiberApp.Listen(":" + g.port))
+		}()
 
-		for _, app := range g.apps {
-			app.AfterStart()
+		// test server connection
+		for {
+			_, err := http.Get("http://localhost:" + g.port)
+			if err == nil {
+				log.Infof("Fiber server listening on %s\n", g.port)
+				return nil
+			}
 		}
-		log.Fatal(fiberApp.Listen(":" + g.port))
 	}
+	return nil
+}
+
+func (g *Adapter) GetName() string {
+	return "Fiber WebServer"
+}
+
+func (g Adapter) GetApps() []api.App {
+	apps := []api.App{}
+	for _, app := range g.apps {
+		apps = append(apps, app)
+	}
+	return apps
 }
 
 // fiberGraphQLHandler cria o handler para processar requests graphQl

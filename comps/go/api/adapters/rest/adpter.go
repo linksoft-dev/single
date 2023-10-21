@@ -18,9 +18,10 @@ type AppInterface interface {
 
 // WebserverInterface interface that defines the adapter
 type WebserverInterface interface {
-	Run()
+	Run() error
 	AddApp(app AppInterface)
 	GetApps() []AppInterface
+	GetName() string
 }
 
 type RouteGroup struct {

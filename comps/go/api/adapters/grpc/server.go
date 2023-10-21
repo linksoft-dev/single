@@ -6,7 +6,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/kissprojects/single/comps/go/api"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
@@ -20,7 +22,7 @@ var (
 
 func New(port string) Adapter {
 	SetPort(port)
-	return Adapter{port: port}
+	return Adapter{port: port, GeneratePB: true, RunHttpServer: true}
 }
 
 func SetPort(port string) {
@@ -36,8 +38,10 @@ type AppI interface {
 
 // Adapter struct to save apps that implement grpc adapters and set port that grpc server should run
 type Adapter struct {
-	port string
-	apps []AppI
+	port          string
+	GeneratePB    bool
+	RunHttpServer bool
+	apps          []AppI
 }
 
 func (g *Adapter) Add(app AppI) {
@@ -45,11 +49,12 @@ func (g *Adapter) Add(app AppI) {
 }
 
 // Run method that implements Adapter interface
-func (g Adapter) Run() {
+func (g Adapter) Run() error {
 	var err error
-	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", g.port))
+	listen, err := net.Listen("tcp", g.getAddress())
 	if err != nil {
-		log.Fatalf("failed to listen on %s: %v", g.port, err)
+		log.Warnf("failed to listen on %s: %v", g.port, err)
+		return err
 	}
 
 	// add interceptors from all apps
@@ -68,17 +73,75 @@ func (g Adapter) Run() {
 
 	// register all apps
 	for _, app := range g.apps {
-		app.Register(grpcServer, mux)
+		err := app.Register(grpcServer, mux)
+		if err != nil {
+			return err
+		}
 	}
 
 	reflection.Register(grpcServer)
-	log.Infof("GRPC server listening on %s\n", g.port)
-	go generatePBFiles()
-	InstallProtocPlugins()
-	go runWebServer()
-	if err := grpcServer.Serve(listen); err != nil {
-		log.Fatalf("failed to serve gRPC over %s: %v", g.port, err)
+	// start the server whatever anything
+	go func() {
+		if err := grpcServer.Serve(listen); err != nil {
+			log.Fatalf("failed to serve gRPC over %s: %v", g.port, err)
+		}
+	}()
+
+	eg := errgroup.Group{}
+
+	if g.GeneratePB {
+		eg.Go(func() error {
+			InstallProtocPlugins()
+			return generatePBFiles()
+		})
 	}
+
+	if g.RunHttpServer {
+		eg.Go(func() error {
+			go runWebServer()
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	// test server connection
+	for {
+		r := g.testGrpcServerConnection()
+		if r {
+			log.Infof("GRPC server listening on %s\n", g.port)
+			return nil
+		}
+	}
+}
+
+// getAddress return the address of the current grpc connection
+func (g Adapter) getAddress() string {
+	return fmt.Sprintf(":%s", g.port)
+}
+func (g Adapter) testGrpcServerConnection() bool {
+	conn, err := grpc.DialContext(context.Background(),
+		g.getAddress(),
+		grpc.WithInsecure(),
+		grpc.FailOnNonTempDialError(true), // fail immediately if can't connect
+		grpc.WithBlock())
+	if err != nil {
+		return false
+	}
+	return conn.GetState() == connectivity.Ready
+}
+func (g Adapter) GetName() string {
+	return "Grpc"
+}
+
+func (g Adapter) GetApps() []api.App {
+	apps := []api.App{}
+	for _, app := range g.apps {
+		apps = append(apps, app)
+	}
+	return apps
 }
 
 // runWebServer run webserver based on all protobuffers
