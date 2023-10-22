@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -125,6 +126,14 @@ func RenderTemplateString(templateName, templateContent string, data interface{}
 	}
 	r = minifyTemplate(buf.String(), templateName)
 	return
+}
+
+func RenderTemplateFromFilename(templateName, templateFileName string, data interface{}, functions *template.FuncMap) (r string, err error) {
+	b, err := os.ReadFile(templateFileName)
+	if err != nil {
+		return "", err
+	}
+	return RenderTemplateString(templateName, string(b), data, functions)
 }
 
 // minifyTemplate minifica um template baseado na extensao do nome do arquivo
