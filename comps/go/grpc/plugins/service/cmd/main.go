@@ -1,7 +1,7 @@
 package main
 
 import (
-	genservice "github.com/kissprojects/single/comps/go/grpc-plugins/protoc-gen-service"
+	genservice "github.com/kissprojects/single/comps/go/grpc/plugins/service"
 	pgs "github.com/lyft/protoc-gen-star"
 	pgsgo "github.com/lyft/protoc-gen-star/lang/go"
 )
