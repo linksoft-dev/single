@@ -16,12 +16,12 @@ func validate(m *Model) error {
 	//validate hashed password
 	v.IsByteLength("Password", m.Password, 60, 60)
 	v.InRangeInt("Age", int(m.Age), 10, 100)
-	return v.Error()
+	return v
 }
 
 // checkPasswordPolicy check the password is following the policy
 func checkPasswordPolicy(pwd string) (r error) {
 	v := validation.NewValidation(language.BrazilianPortuguese)
 	v.IsFilled("Senha", pwd, 4, 30)
-	return v.Error()
+	return v
 }
