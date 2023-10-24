@@ -2,7 +2,7 @@ package rest
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/kissprojects/single/comps/go/api"
+	"github.com/linksoft-dev/single/comps/go/api"
 	"net/http"
 )
 

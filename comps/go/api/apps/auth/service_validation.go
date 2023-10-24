@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/kissprojects/single/comps/go/validation"
+	"github.com/linksoft-dev/single/comps/go/validation"
 	"golang.org/x/text/language"
 )
 

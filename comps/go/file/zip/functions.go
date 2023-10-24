@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"github.com/kissprojects/single/comps/go/file"
+	"github.com/linksoft-dev/single/comps/go/file"
 	"io"
 	"io/ioutil"
 	"os"

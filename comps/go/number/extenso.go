@@ -2,7 +2,7 @@ package number
 
 import (
 	"fmt"
-	"github.com/kissprojects/single/comps/go/list"
+	"github.com/linksoft-dev/single/comps/go/list"
 	"strconv"
 	"strings"
 )

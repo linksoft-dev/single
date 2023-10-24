@@ -2,7 +2,7 @@ package number
 
 import (
 	"fmt"
-	"github.com/kissprojects/single/comps/go/str"
+	"github.com/linksoft-dev/single/comps/go/str"
 	"github.com/shopspring/decimal"
 	"golang.org/x/exp/constraints"
 	"strconv"

@@ -2,7 +2,7 @@ package html
 
 import (
 	"bytes"
-	"github.com/kissprojects/single/comps/go/str"
+	"github.com/linksoft-dev/single/comps/go/str"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/tdewolff/minify/v2/svg"

@@ -11,12 +11,12 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/kissprojects/single/comps/go/file"
-	"github.com/kissprojects/single/comps/go/html"
-	"github.com/kissprojects/single/comps/go/number"
-	"github.com/kissprojects/single/comps/go/str"
-	"github.com/kissprojects/single/comps/go/validation"
-	"github.com/kissprojects/single/comps/go/xml"
+	"github.com/linksoft-dev/single/comps/go/file"
+	"github.com/linksoft-dev/single/comps/go/html"
+	"github.com/linksoft-dev/single/comps/go/number"
+	"github.com/linksoft-dev/single/comps/go/str"
+	"github.com/linksoft-dev/single/comps/go/validation"
+	"github.com/linksoft-dev/single/comps/go/xml"
 )
 
 var renderTemplateFuncMap = template.FuncMap{

@@ -3,7 +3,7 @@ syntax = "proto3";
 package service;
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/kissprojects/single/comps/go/grpc/plugins/service";
+option go_package = "github.com/linksoft-dev/single/comps/go/grpc/plugins/service";
 
 extend google.protobuf.MessageOptions {
   bool crud = 1000;

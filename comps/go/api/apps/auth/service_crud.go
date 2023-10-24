@@ -3,7 +3,7 @@ package auth
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/kissprojects/single/comps/go/str"
+	"github.com/linksoft-dev/single/comps/go/str"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"

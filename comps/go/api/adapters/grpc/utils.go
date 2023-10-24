@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"fmt"
-	"github.com/kissprojects/single/comps/go/system"
+	"github.com/linksoft-dev/single/comps/go/system"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"

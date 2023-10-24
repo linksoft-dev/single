@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/kissprojects/single/comps/go/cache/redis"
+	"github.com/linksoft-dev/single/comps/go/cache/redis"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

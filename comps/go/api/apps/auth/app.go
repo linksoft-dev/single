@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/kissprojects/single/comps/go/api/adapters/rest"
+	"github.com/linksoft-dev/single/comps/go/api/adapters/rest"
 	"google.golang.org/grpc"
 	"net/http"
 )
