@@ -60,7 +60,7 @@ var datetimeCustomFormats = [22]string{
 	ISO8601CompactZ, ISO8601CompactNoTZ, ISO8601YM, SQLTimestamp, SQLTimestampPgTz, DateDMYHM2,
 }
 
-//struct to concat errors validation
+// struct to concat errors validation
 type Validation struct {
 	errors   []string
 	language language.Tag
@@ -73,19 +73,19 @@ func NewValidation(language language.Tag) *Validation {
 }
 
 // Error return the error instance
-func (v *Validation) Error() (err error) {
+func (v *Validation) Error() string {
 	var sb strings.Builder
 	if len(v.errors) == 0 {
-		return
+		return ""
 	}
 	for _, msg := range v.errors {
 		sb.WriteString(fmt.Sprintf("%s,", msg))
 	}
 	r := strings.TrimSuffix(sb.String(), ",")
-	return fmt.Errorf("%s", r)
+	return fmt.Sprintf("%s", r)
 }
 
-//GetErrors retorna os erros de validacao, após executar essa funcao, os erros são zerados
+// GetErrors retorna os erros de validacao, após executar essa funcao, os erros são zerados
 func (v *Validation) GetErrors() []string {
 	defer func(v *Validation) {
 		v.errors = nil
@@ -93,7 +93,7 @@ func (v *Validation) GetErrors() []string {
 	return v.errors
 }
 
-//Validated funcao para retornar se existem erros ou nao
+// Validated funcao para retornar se existem erros ou nao
 func (v *Validation) Validated() bool {
 	return len(v.errors) == 0
 }
@@ -102,19 +102,19 @@ func (v *Validation) AddMessage(str string, params ...interface{}) {
 	v.errors = append(v.errors, fmt.Sprintf(str, params...))
 }
 
-//AddErroMessage essa funcao cria uma mensagem de erro baseado no objeto erro
+// AddErroMessage essa funcao cria uma mensagem de erro baseado no objeto erro
 func (v *Validation) AddErroMessage() {
 	v.errors = append(v.errors, "Ocorreu um erro no sistema e nossa equipe já foi notificada, aguarde que já estamos "+
 		"ciente e já trabalhando na solução.")
 }
 
-//AddFirstMessage adiciona uma mensagem para a primeira na lista do slice(array)
+// AddFirstMessage adiciona uma mensagem para a primeira na lista do slice(array)
 func (v *Validation) AddFirstMessage(str string, params ...interface{}) {
 	newSlice := []string{fmt.Sprintf(str, params...)}
 	v.errors = append(newSlice, v.errors...)
 }
 
-//SetLastMessage altera a ultima mensagem de validacao
+// SetLastMessage altera a ultima mensagem de validacao
 func (v *Validation) SetLastMessage(msg string) {
 	v.errors[len(v.errors)-1] = msg
 }
@@ -134,7 +134,7 @@ func (v *Validation) IsIn(msg string, str string, params ...string) bool {
 	return false
 }
 
-//IsByteLength check length of the string, if the string is empty, skip the validation
+// IsByteLength check length of the string, if the string is empty, skip the validation
 func (v *Validation) IsByteLength(msg, str string, min, max int) bool {
 	if str != "" {
 		if !IsByteLength(str, min, max) {
@@ -146,7 +146,7 @@ func (v *Validation) IsByteLength(msg, str string, min, max int) bool {
 	return true
 }
 
-//EqualsFloat verifica se os valores recebidos são iguais
+// EqualsFloat verifica se os valores recebidos são iguais
 func (v *Validation) EqualsFloat(msg string, value, equalValue float64) bool {
 	if value != equalValue {
 		msg = fmt.Sprintf(v.getMessage(equalsFloat), msg, equalValue, value)
@@ -261,7 +261,7 @@ func (v *Validation) IsValidEmailFormat(fieldName string, value string) bool {
 	return true
 }
 
-//IsOnlyNumber returns true if the string contains only number
+// IsOnlyNumber returns true if the string contains only number
 func (v *Validation) IsOnlyNumber(fieldName, str string) bool {
 	onlyNumber := IsOnlyNumber(str)
 	if !onlyNumber {
@@ -271,7 +271,7 @@ func (v *Validation) IsOnlyNumber(fieldName, str string) bool {
 	return onlyNumber
 }
 
-//IsCpfCnpjValid check if Cpf or Identification are valid
+// IsCpfCnpjValid check if Cpf or Identification are valid
 func (v *Validation) IsCpfCnpjValid(fieldName, value string) bool {
 	valid := IsCpfValid(value)
 	if !valid {
@@ -309,7 +309,7 @@ func (v *Validation) getMessage(messageId string) string {
 	}
 }
 
-//IsInt Verifica se a string passada é um numero inteiro
+// IsInt Verifica se a string passada é um numero inteiro
 func (v *Validation) IsInt(filter string) bool {
 	if _, err := strconv.Atoi(filter); err == nil {
 		return true
@@ -317,7 +317,7 @@ func (v *Validation) IsInt(filter string) bool {
 	return false
 }
 
-//IsDateTime check if a datetime in string is valid
+// IsDateTime check if a datetime in string is valid
 func (v *Validation) IsDateTime(datetime string) bool {
 	for _, format := range datetimeCustomFormats {
 		if _, err := time.Parse(format, datetime); err == nil {
@@ -327,7 +327,7 @@ func (v *Validation) IsDateTime(datetime string) bool {
 	return false
 }
 
-//IsStateBR check if a state is valid
+// IsStateBR check if a state is valid
 func (v *Validation) IsStateBR(fieldName, value string) bool {
 	isValid := IsStateBR(value)
 	if !isValid {
@@ -336,7 +336,7 @@ func (v *Validation) IsStateBR(fieldName, value string) bool {
 	return isValid
 }
 
-//IsUrl check if the string is a valida url
+// IsUrl check if the string is a valida url
 func (v *Validation) IsUrl(fieldName, value string) bool {
 	isValid := govalidator.IsURL(value)
 	if !isValid {
@@ -345,7 +345,7 @@ func (v *Validation) IsUrl(fieldName, value string) bool {
 	return isValid
 }
 
-//IsUrl check if the string is a valida url
+// IsUrl check if the string is a valida url
 func (v *Validation) IsUUID(fieldName, value string) bool {
 	isValid := govalidator.IsUUID(value)
 	if !isValid {
@@ -392,7 +392,7 @@ func (v *Validation) IsCreditCardNumber(fieldName, number string) bool {
 	return isValid
 }
 
-//IsEmail verifique se uma string é um email válido
+// IsEmail verifique se uma string é um email válido
 func IsEmail(v string) bool {
 	if err := checkmail.ValidateFormat(v); err != nil {
 		return false
