@@ -15,11 +15,11 @@ func (a AppModule) GetRouters() *[]rest.RouteGroup {
 }
 
 func (a AppModule) GetRouterGroup() *[]rest.RouteGroup {
-	return getRoutes()
+	return nil
 }
 
 func (a AppModule) GetMiddlewares() []func(http.Handler) http.Handler {
-	return getMiddlewares()
+	return nil
 }
 
 func (a AppModule) Register(_ *grpc.Server) {

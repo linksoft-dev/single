@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"github.com/kissprojects/single/comps/go/database"
 	"log"
 	"os"
 )
@@ -14,12 +15,12 @@ type Dao interface {
 	FindByEmail(email string) (Model, error)
 }
 
-//singleton instace of the database
+// singleton instace of the database
 var db *database.Database
 
 type DaoDatabase struct{}
 
-//GetDb return the instance of database connection
+// GetDb return the instance of database connection
 func GetDb() (r *database.Database) {
 	var err error
 	if db == nil {

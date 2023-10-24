@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package investimentos;
+
+import "google/api/annotations.proto";
+import "service.proto";
+
+option go_package = "investbr/apps/simulador/pb";
+
+service AccountService {
+  rpc Create(CreateAccountRequest) returns (CreateAccountResponse) {
+    option (google.api.http) = {
+      post: "/v1/Account"
+      body: "*"
+    };
+  }
+  rpc Update(UpdateAccountRequest) returns (UpdateAccountResponse) {
+    option (google.api.http) = {
+      put: "/v1/Account/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteAccountRequest) returns (DeleteAccountResponse) {
+    option (google.api.http) = {
+      delete: "/v1/Account/{id}"
+    };
+  }
+  rpc Find(FindAccountRequest) returns (FindAccountResponse) {
+    option (google.api.http) = {
+      get: "/v1/Account/{id}"
+    };
+  }
+}
+
+message CreateAccountRequest {
+  Account Account = 1;
+}
+
+message CreateAccountResponse {
+  Account Account = 1;
+}
+
+message UpdateAccountRequest {
+  string id = 1;
+  Account Account = 2;
+}
+
+message UpdateAccountResponse {
+  Account Account = 1;
+}
+
+message DeleteAccountRequest {
+  string id = 1;
+}
+
+message DeleteAccountResponse {}
+
+message FindAccountRequest {
+  string id = 1;
+}
+
+message FindAccountResponse {
+  Account Account = 1;
+}
+
+message Account {
+  option (kissproject.single.service.crud) = true;
+  string name = 1;
+
+}
