@@ -1,6 +1,4 @@
-Validation for protobuf, complete and flexible validation for protobuf
-
-Validate any message for protobuf, focus on simplicity
+Validation for protobuf, complete and flexible
 
 simple but yet powerful
 
