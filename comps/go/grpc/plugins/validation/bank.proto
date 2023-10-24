@@ -7,92 +7,64 @@ import "service.proto";
 
 option go_package = "investbr/apps/simulador/pb";
 
-// Enumeração para o tipo de produto.
-enum TipoProduto {
-  CDB = 0;
-  RDB = 1;
-  LCI = 2;
-  LCA = 3;
-}
-
-// Enumeração para o tipo de investimento.
-enum TipoInvestimento {
-  RendaFixa = 0;
-  RendaVariavel = 1;
-}
-
-service BancoService {
-  rpc Create(CreateBancoRequest) returns (CreateBancoResponse) {
+service AccountService {
+  rpc Create(CreateAccountRequest) returns (CreateAccountResponse) {
     option (google.api.http) = {
-      post: "/v1/banco"
+      post: "/v1/Account"
       body: "*"
     };
   }
-  rpc Update(UpdateBancoRequest) returns (UpdateBancoResponse) {
+  rpc Update(UpdateAccountRequest) returns (UpdateAccountResponse) {
     option (google.api.http) = {
-      put: "/v1/banco/{id}"
+      put: "/v1/Account/{id}"
       body: "*"
     };
   }
-  rpc Delete(DeleteBancoRequest) returns (DeleteBancoResponse) {
+  rpc Delete(DeleteAccountRequest) returns (DeleteAccountResponse) {
     option (google.api.http) = {
-      delete: "/v1/banco/{id}"
+      delete: "/v1/Account/{id}"
     };
   }
-  rpc Find(FindBancoRequest) returns (FindBancoResponse) {
+  rpc Find(FindAccountRequest) returns (FindAccountResponse) {
     option (google.api.http) = {
-      get: "/v1/banco/{id}"
+      get: "/v1/Account/{id}"
     };
   }
 }
 
-message CreateBancoRequest {
-  Banco banco = 1;
+message CreateAccountRequest {
+  Account Account = 1;
 }
 
-message CreateBancoResponse {
-  Banco banco = 1;
+message CreateAccountResponse {
+  Account Account = 1;
 }
 
-message UpdateBancoRequest {
+message UpdateAccountRequest {
   string id = 1;
-  Banco banco = 2;
+  Account Account = 2;
 }
 
-message UpdateBancoResponse {
-  Banco banco = 1;
+message UpdateAccountResponse {
+  Account Account = 1;
 }
 
-message DeleteBancoRequest {
-  string id = 1;
-}
-
-message DeleteBancoResponse {}
-
-message FindBancoRequest {
+message DeleteAccountRequest {
   string id = 1;
 }
 
-message FindBancoResponse {
-  Banco banco = 1;
+message DeleteAccountResponse {}
+
+message FindAccountRequest {
+  string id = 1;
 }
 
-message Banco {
+message FindAccountResponse {
+  Account Account = 1;
+}
+
+message Account {
   option (kissproject.single.service.crud) = true;
-  string nome = 1;
-  string icone = 2;
-  repeated Investimento investimentos = 3;
-}
+  string name = 1;
 
-message Investimento {
-  string nome = 1;
-  float percentual_cdi = 2;
-  TipoProduto tipo_produto = 3;
-  TipoInvestimento tipo_investimento = 4;
-  float juros_ao_nao = 5;
-  float valor_bruto = 6;
-  float total_liquido = 7;
-  float imposto_total = 8;
-  float imposto_percentual = 9;
-  float rentabilidade = 10;
 }
