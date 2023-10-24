@@ -4,6 +4,13 @@ simple but yet powerful
 
 ### Support
 
-- i18n
 - Many validations by fields
-- Custom validation 
+- Custom validation
+- i18n
+- Nested Validation
+
+
+### Future support
+
+- Client code generation
+- Other languages
