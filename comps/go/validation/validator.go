@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"fmt"
 	"github.com/badoux/checkmail"
 	"github.com/rodrigorodriguescosta/govalidator"
@@ -70,6 +71,23 @@ func NewValidation(language language.Tag) *Validation {
 	return &Validation{
 		language: language,
 	}
+}
+
+func New() *Validation {
+	return &Validation{}
+}
+
+func NewWithContext(ctx context.Context) *Validation {
+	return &Validation{}
+}
+
+// ValidateI18nContext validate and try to get the language from the context
+func (v *Validation) ValidateI18nContext(ctx context.Context) error {
+	if _, ok := ctx.Value("lang").(string); ok {
+		//bundle.
+		language.BrazilianPortuguese.String()
+	}
+	return nil
 }
 
 // Error return the error instance
