@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"github.com/kissprojects/single/comps/go/database"
+	"github.com/linksoft-dev/single/comps/go/database"
 	"log"
 	"os"
 )
