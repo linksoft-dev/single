@@ -44,20 +44,7 @@ func (g *Adapter) Run() error {
 			restRouters := app.GetRouters()
 			if restRouters != nil {
 				for _, route := range *restRouters {
-					switch route.Method {
-					case http.MethodGet:
-						webserver.Get(route.Path, route.Handler)
-					case http.MethodPost:
-						webserver.Post(route.Path, route.Handler)
-					case http.MethodDelete:
-						webserver.Delete(route.Path, route.Handler)
-					case http.MethodPatch:
-						webserver.Patch(route.Path, route.Handler)
-					case http.MethodPut:
-						webserver.Put(route.Path, route.Handler)
-					case http.MethodOptions:
-						webserver.Options(route.Path, route.Handler)
-					}
+					webserver.MethodFunc(route.Method, route.Path, route.Handler)
 					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": "/api" + route.Path})
 				}
 			}
