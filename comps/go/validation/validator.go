@@ -11,19 +11,23 @@ import (
 	"time"
 )
 
+type errorCode int
+
 // all constants for all validations
 const (
-	isByteLength  = "isByteLength"
-	inRangeFloat  = "inRangeFloat"
-	inRangeInt    = "inRangeInt"
-	equalsFloat   = "equalsFloat"
-	isRequired    = "isRequired"
-	isObjectId    = "isObjectId"
-	isEmailValid  = "isEmailValid"
-	isOnlyNumber  = "isOnlyNumber"
-	isGreaterThan = "isGreaterThan"
-	isNotValid    = "isNotValid"
-	isNotUrlValid = "isNotUrlValid"
+	errCodeCustomMessage errorCode = iota
+	errCodeIsIn          errorCode = iota
+	isByteLength
+	inRangeFloat
+	inRangeInt
+	equalsFloat
+	isRequired
+	isObjectId
+	isEmailValid
+	isOnlyNumber
+	isGreaterThan
+	isNotValid
+	isNotUrlValid
 )
 
 // Constants for time format
@@ -61,15 +65,26 @@ var datetimeCustomFormats = [22]string{
 	ISO8601CompactZ, ISO8601CompactNoTZ, ISO8601YM, SQLTimestamp, SQLTimestampPgTz, DateDMYHM2,
 }
 
-// struct to concat errors validation
+type errorsModel struct {
+	Identification string
+	Validations    []errorModel
+}
+
+type errorModel struct {
+	Code    errorCode
+	Message string
+}
+
+// Validation struct to concat/organize errors validation
 type Validation struct {
-	errors   []string
+	errors   map[string]*errorsModel
 	language language.Tag
 }
 
 func NewValidation(language language.Tag) *Validation {
 	return &Validation{
 		language: language,
+		errors:   map[string]*errorsModel{},
 	}
 }
 
@@ -87,6 +102,7 @@ func (v *Validation) ValidateI18nContext(ctx context.Context) error {
 		//bundle.
 		language.BrazilianPortuguese.String()
 	}
+	v.Validated()
 	return nil
 }
 
@@ -116,25 +132,39 @@ func (v *Validation) Validated() bool {
 	return len(v.errors) == 0
 }
 
-func (v *Validation) AddMessage(str string, params ...interface{}) {
-	v.errors = append(v.errors, fmt.Sprintf(str, params...))
+// addError private method to add a structured error validation, using map to group errors by identifiers
+func (v *Validation) addError(identifier, message string, code errorCode) {
+	errs := v.getErrorByIdentifier(identifier)
+	errs.Validations = append(errs.Validations, errorModel{
+		Code:    code,
+		Message: message,
+	})
 }
 
-// AddErroMessage essa funcao cria uma mensagem de erro baseado no objeto erro
-func (v *Validation) AddErroMessage() {
-	v.errors = append(v.errors, "Ocorreu um erro no sistema e nossa equipe já foi notificada, aguarde que já estamos "+
-		"ciente e já trabalhando na solução.")
+// getErrorByIdentifier return the errorsModel based on error identifier
+func (v *Validation) getErrorByIdentifier(identifier string) errorsModel {
+	if identifier == "" {
+		identifier = "unspecified"
+	}
+	errs := v.errors[identifier]
+	if errs == nil {
+		errs = &errorsModel{
+			Identification: identifier,
+			Validations:    nil,
+		}
+		v.errors[identifier] = errs
+	}
+	return *errs
+}
+func (v *Validation) AddMessage(str string, params ...interface{}) {
+	v.addError("", fmt.Sprintf(str, params...), errCodeCustomMessage)
 }
 
 // AddFirstMessage adiciona uma mensagem para a primeira na lista do slice(array)
 func (v *Validation) AddFirstMessage(str string, params ...interface{}) {
-	newSlice := []string{fmt.Sprintf(str, params...)}
-	v.errors = append(newSlice, v.errors...)
-}
-
-// SetLastMessage altera a ultima mensagem de validacao
-func (v *Validation) SetLastMessage(msg string) {
-	v.errors[len(v.errors)-1] = msg
+	v.addError("", fmt.Sprintf(str, params...), errCodeCustomMessage)
+	errs := v.getErrorByIdentifier("")
+	errs.Validations = append(errs.Validations, errs.Validations...)
 }
 
 func (v *Validation) IsIn(msg string, str string, params ...string) bool {
@@ -148,7 +178,7 @@ func (v *Validation) IsIn(msg string, str string, params ...string) bool {
 			strings.Join(params, ","),
 			str)
 	}
-	v.errors = append(v.errors, msg)
+	v.addError("", msg, errCodeIsIn)
 	return false
 }
 
@@ -404,7 +434,8 @@ func (v *Validation) IsCreditCardNumber(fieldName, number string) bool {
 
 	isValid := sum%10 == 0
 	if !isValid {
-		v.errors = append(v.errors, fmt.Sprintf(v.getMessage(isNotValid), fieldName, number))
+		msg := fmt.Sprintf(v.getMessage(isNotValid), fieldName, number)
+		v.addError("", msg, errCodeIsIn)
 	}
 
 	return isValid
