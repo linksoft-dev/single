@@ -1,13 +1,22 @@
 package validation
 
 import (
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
+	"embed"
+	"github.com/linksoft-dev/single/comps/go/i18n"
 )
 
-var bundle *i18n.Bundle
+//go:embed *.toml
+var files embed.FS
 
-func Init() {
-	bundle = i18n.NewBundle(language.English)
-	bundle.LoadMessageFile("i18n_pt-BR.toml")
+// i18nMessages represent the common data used in the translations
+type i18nMessages struct {
+	Name           string
+	Value          any //value passed by validation
+	CurrentValue   any
+	Value1, Value2 any
+}
+
+func init() {
+	// add all supported languages by toml files
+	i18n.AddLanguagesByFiles(files)
 }
