@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/kissprojects/single/comps/go/api"
-	"github.com/kissprojects/single/comps/go/api/adapters/rest/fiber"
-	"github.com/kissprojects/single/comps/go/api/apps/auth"
+	"github.com/linksoft-dev/single/comps/go/api"
+	"github.com/linksoft-dev/single/comps/go/api/adapters/rest/chi"
+	"github.com/linksoft-dev/single/crud/apps/todo"
 )
 
 func main() {
-	restAdapter := fiber.New("8000")
-	api.AddAdapters(restAdapter)
 
-	api.AddApp(auth.App)
+	chiServer := chi.New("8085", "/chi")
+	chiServer.AddApp(todo.App)
+
+	api.AddAdapter(chiServer)
 	api.Start("crud-sample")
 }
