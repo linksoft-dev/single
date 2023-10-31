@@ -20,7 +20,9 @@ func (a AppModule) GetRouterGroup() *[]rest.RouteGroup {
 }
 
 func (a AppModule) GetMiddlewares() []func(http.Handler) http.Handler {
-	return nil
+	return []func(http.Handler) http.Handler{
+		middlewareLog,
+	}
 }
 
 func (a AppModule) Register(_ *grpc.Server) {
