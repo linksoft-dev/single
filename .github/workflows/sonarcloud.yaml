@@ -21,6 +21,6 @@ jobs:
         args: >
           -Dsonar.organization=linksoft-dev
           -Dsonar.projectKey=linksoft-dev_single
-          -Dsonar.exclusions=**/registerServiceWorker.js,**/*.py,**/*.xsd,**/*.xml,**/*.mod;**/*.sum,**/*.bat,**/*.sh,**/*.json
+          -Dsonar.exclusions=**/*.py,**/*.xsd,**/*.xml,**/*.mod;**/*.sum,**/*.bat,**/*.sh,**/*.json
           -Dsonar.test.inclusions=**/*_test.go
           -Dsonar.cpd.exclusions=
