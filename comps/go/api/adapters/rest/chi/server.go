@@ -25,8 +25,6 @@ func (g *Adapter) AddApp(app rest.AppInterface) {
 	g.apps = append(g.apps, app)
 }
 
-const apiPrefix = "/api"
-
 func (g *Adapter) Run() error {
 	if webserver == nil {
 		webserver = chi.NewRouter()
