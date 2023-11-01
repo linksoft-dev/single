@@ -7,7 +7,7 @@ on:
       - '.github/workflows/test_comps_go.yaml'
 
 jobs:
-  test:
+  testGo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
