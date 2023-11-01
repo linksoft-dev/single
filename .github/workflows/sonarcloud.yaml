@@ -9,7 +9,7 @@ jobs:
   SonarCloud:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: SonarCloud Scan
@@ -19,8 +19,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-          -Dsonar.organization=kissprojects
-          -Dsonar.projectKey=kissprojects_single
-          -Dsonar.exclusions=**/registerServiceWorker.js,**/*.py,**/*.xsd,**/*.xml,**/*.mod;**/*.sum,**/*.bat,**/*.sh,**/*.json
+          -Dsonar.organization=linksoft-dev
+          -Dsonar.projectKey=linksoft-dev_single
+          -Dsonar.exclusions=**/*.py,**/*.xsd,**/*.xml,**/*.mod;**/*.sum,**/*.bat,**/*.sh,**/*.json
           -Dsonar.test.inclusions=**/*_test.go
           -Dsonar.cpd.exclusions=

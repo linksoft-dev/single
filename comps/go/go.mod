@@ -8,6 +8,7 @@ require (
 	github.com/badoux/checkmail v1.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gabriel-vasile/mimetype v1.4.2
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gocarina/gocsv v0.0.0-20220914091333-ceebdd90b590
 	github.com/gofiber/fiber/v2 v2.49.1
