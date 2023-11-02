@@ -1,6 +1,9 @@
 package fiber
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -11,8 +14,6 @@ import (
 	"github.com/linksoft-dev/single/comps/go/api"
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strings"
 )
 
 var fiberApp *fiber.App
@@ -51,11 +52,9 @@ func (g *Adapter) Run() error {
 
 		for _, app := range g.apps {
 			appMiddleware := app.GetMiddlewares()
-			if appMiddleware != nil {
-				for _, value := range appMiddleware {
-					if value != nil {
-						apiGroup.Use(adaptor.HTTPMiddleware(value))
-					}
+			for _, value := range appMiddleware {
+				if value != nil {
+					apiGroup.Use(adaptor.HTTPMiddleware(value))
 				}
 			}
 
@@ -64,7 +63,7 @@ func (g *Adapter) Run() error {
 				for _, route := range *restRouters {
 					route.Path = convertBraceToColon(route.Path)
 					apiGroup.Add(route.Method, route.Path, adaptor.HTTPHandlerFunc(route.Handler))
-					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": "/api" + route.Path})
+					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": g.prefix + route.Path})
 				}
 			}
 
