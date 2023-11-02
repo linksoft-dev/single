@@ -1,11 +1,13 @@
 package chi
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/linksoft-dev/single/comps/go/api"
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
 )
 
 var webserver *chi.Mux
@@ -42,6 +44,9 @@ func (g *Adapter) Run() error {
 			restRouters := app.GetRouters()
 			if restRouters != nil {
 				for _, route := range *restRouters {
+					if g.prefix != "" {
+						route.Path = fmt.Sprintf("%s/%s", g.prefix, strings.TrimPrefix(route.Path, "/"))
+					}
 					webserver.MethodFunc(route.Method, route.Path, route.Handler)
 					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": "/api" + route.Path})
 				}
