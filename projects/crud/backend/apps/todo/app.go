@@ -2,6 +2,7 @@ package todo
 
 import (
 	"github.com/graphql-go/graphql"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest"
 	"google.golang.org/grpc"
 	"net/http"
@@ -25,8 +26,8 @@ func (a AppModule) GetMiddlewares() []func(http.Handler) http.Handler {
 	}
 }
 
-func (a AppModule) Register(_ *grpc.Server) {
-
+func (a AppModule) Register(s *grpc.Server, httpServer *runtime.ServeMux) error {
+	return nil
 }
 
 func (a AppModule) BeforeStart() {}

@@ -16,5 +16,5 @@ func getRoutes() *[]rest.Route {
 func getTodo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	id := chi.URLParam(r, "id")
-	w.Write([]byte(fmt.Sprintf("Hello Chi Id %s", id)))
+	w.Write([]byte(fmt.Sprintf("Hello Go App framework, Id is '%s'", id)))
 }
