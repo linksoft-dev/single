@@ -2,6 +2,7 @@ package fiber
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -62,7 +63,14 @@ func (g *Adapter) Run() error {
 			if restRouters != nil {
 				for _, route := range *restRouters {
 					route.Path = convertBraceToColon(route.Path)
-					apiGroup.Add(route.Method, route.Path, adaptor.HTTPHandlerFunc(route.Handler))
+					apiGroup.Add(route.Method, route.Path, func(c *fiber.Ctx) error {
+						r := getRequestFromFiberContext(c)
+						res := NewCustomResponseWriter()
+						route.Handler(res, r)
+						c.Write(res.body)
+						return c.SendString(string(res.body))
+					})
+
 					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": g.prefix + route.Path})
 				}
 			}
@@ -113,6 +121,49 @@ func (g Adapter) GetApps() []api.App {
 		apps = append(apps, app)
 	}
 	return apps
+}
+
+// getRequestFromFiberContext this function return a pointer of http.Request copying URL parameters
+// given fiber context
+func getRequestFromFiberContext(c *fiber.Ctx) (r *http.Request) {
+	r, _ = adaptor.ConvertRequest(c, true)
+	params := c.AllParams()
+	if len(params) == 0 {
+		return
+	}
+	// copy URL parameters
+	queryParams := url.Values{}
+	for key, value := range params {
+		queryParams.Add(key, value)
+	}
+	r.URL.RawQuery = queryParams.Encode()
+	return
+}
+
+type CustomResponseWriter struct {
+	body       []byte
+	statusCode int
+	header     http.Header
+}
+
+func NewCustomResponseWriter() *CustomResponseWriter {
+	return &CustomResponseWriter{
+		header: http.Header{},
+	}
+}
+
+func (w *CustomResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *CustomResponseWriter) Write(b []byte) (int, error) {
+	w.body = b
+	// implement it as per your requirement
+	return 0, nil
+}
+
+func (w *CustomResponseWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
 }
 
 // fiberGraphQLHandler cria o handler para processar requests graphQl
