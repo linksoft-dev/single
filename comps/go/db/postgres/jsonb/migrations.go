@@ -2,7 +2,6 @@ package jsonb
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -65,14 +64,14 @@ func (m *MigrationModel) GetMigrationNumber() int64 {
 //}
 
 // getCurrentMigration return current/latest migration applied to the database
-func (d *Database) getCurrentMigration(module string) (currentMigration MigrationModel) {
-	//migrations := []MigrationModel{}
-	err := d.Query.From("migrations").Eq("module", module).FindRaw(&currentMigration)
-	if err != nil {
-		panic(err)
-	}
-	return
-}
+//func (d *Database) getCurrentMigration(module string) (currentMigration MigrationModel) {
+//	//migrations := []MigrationModel{}
+//	err := d.Query.From("migrations").Eq("module", module).FindRaw(&currentMigration)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return
+//}
 
 // AutoMigrateOnError function used to identify the error and decide what to do, the goal of this function is update the
 // database structure based on the error, so apply the getMigrations if needed
@@ -91,41 +90,42 @@ func isMissingDatabase(err error, dbName string) bool {
 	return strings.Contains(err.Error(), msg)
 }
 
-// isMissingTable function to return if the error is related to missing table
-func (d *Database) isMissingTable(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), "relation \"") &&
-		strings.Contains(err.Error(), "\" does not exist")
-}
-
-// createTable cria uma tabela baseada na mensagem de erro
-func (d *Database) createTable(e error) bool {
-	re, err := regexp.Compile(`ERROR: relation "(?P<org>.*?)"`)
-	if err != nil {
-		fmt.Print(err)
-	}
-	matches := re.FindAllStringSubmatch(e.Error(), 1)
-	for _, match := range matches {
-		d.ExecSQL(d.GetOrgTable(match[1]))
-		return true
-	}
-	return false
-}
-
-// isMissingColumn function to return if the error is related to missing column
-func (d *Database) isMissingColumn(err error) bool {
-	return strings.Contains(err.Error(), "column \"") &&
-		strings.Contains(err.Error(), "\" does not exist")
-}
-
-// isAuthenticationError function to return if the error is related Authentication for the database
-func (d *Database) isAuthenticationError(err error) bool {
-	return strings.Contains(err.Error(), "authentication failed")
-}
-
-// isDuplicatedFieldError function to return if the error is related duplicate Field
-func (d *Database) isDuplicatedFieldError(err error) bool {
-	return strings.Contains(err.Error(), "duplicate key Value violates unique constraint")
-}
+//
+//// isMissingTable function to return if the error is related to missing table
+//func (d *Database) isMissingTable(err error) bool {
+//	if err == nil {
+//		return false
+//	}
+//	return strings.Contains(err.Error(), "relation \"") &&
+//		strings.Contains(err.Error(), "\" does not exist")
+//}
+//
+//// createTable cria uma tabela baseada na mensagem de erro
+//func (d *Database) createTable(e error) bool {
+//	re, err := regexp.Compile(`ERROR: relation "(?P<org>.*?)"`)
+//	if err != nil {
+//		fmt.Print(err)
+//	}
+//	matches := re.FindAllStringSubmatch(e.Error(), 1)
+//	for _, match := range matches {
+//		d.ExecSQL(d.GetOrgTable(match[1]))
+//		return true
+//	}
+//	return false
+//}
+//
+//// isMissingColumn function to return if the error is related to missing column
+//func (d *Database) isMissingColumn(err error) bool {
+//	return strings.Contains(err.Error(), "column \"") &&
+//		strings.Contains(err.Error(), "\" does not exist")
+//}
+//
+//// isAuthenticationError function to return if the error is related Authentication for the database
+//func (d *Database) isAuthenticationError(err error) bool {
+//	return strings.Contains(err.Error(), "authentication failed")
+//}
+//
+//// isDuplicatedFieldError function to return if the error is related duplicate Field
+//func (d *Database) isDuplicatedFieldError(err error) bool {
+//	return strings.Contains(err.Error(), "duplicate key Value violates unique constraint")
+//}

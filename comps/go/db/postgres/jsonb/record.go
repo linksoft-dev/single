@@ -2,7 +2,7 @@ package jsonb
 
 import (
 	"fmt"
-	"github.com/linksoft-dev/single/comps/go/obj"
+	"github.com/linksoft-dev/single/comps/go/db"
 	"strings"
 )
 
@@ -64,23 +64,24 @@ func (r *Record) GetSQLInsert(tableName string) (sql string, params []interface{
 	return sql, params
 }
 
-func (r *Record) GetSQLUpdate(tableName string, q Query) (query string, params []interface{}) {
-	fields := ""
-	paramsCount := 1
-
-	for key, value := range r.record {
-		if obj.IsZeroValue(value) {
-			fields += key + "=null,"
-		} else {
-			fields += key + "=" + fmt.Sprintf("?,")
-			paramsCount++
-			params = append(params, value)
-		}
-	}
-	fields = strings.TrimSuffix(fields, ",")
-
-	where, whereParams := q.getWhere(paramsCount)
-	params = append(params, whereParams...)
-	query = fmt.Sprintf("UPDATE %s SET %s WHERE %s", tableName, fields, where)
-	return query, params
+func (r *Record) GetSQLUpdate(tableName string, q db.Query) (query string, params []interface{}) {
+	//fields := ""
+	//paramsCount := 1
+	//
+	//for key, value := range r.record {
+	//	if obj.IsZeroValue(value) {
+	//		fields += key + "=null,"
+	//	} else {
+	//		fields += key + "=" + fmt.Sprintf("?,")
+	//		paramsCount++
+	//		params = append(params, value)
+	//	}
+	//}
+	//fields = strings.TrimSuffix(fields, ",")
+	//
+	//where, whereParams := q.getWhere(paramsCount)
+	//params = append(params, whereParams...)
+	//query = fmt.Sprintf("UPDATE %s SET %s WHERE %s", tableName, fields, where)
+	//return query, params
+	return "", nil
 }
