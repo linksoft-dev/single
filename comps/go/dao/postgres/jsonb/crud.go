@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/obj"
+	"github.com/linksoft-dev/single/comps/go/str"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	"gorm.io/gorm"
@@ -25,7 +26,6 @@ const (
 // NewDataBase factory method para criar uma isntancia da struct Database
 func NewDataBase[T dao.ObjI[T]](dbName, tenantId, resourceName string) (*Database[T], error) {
 	db := &Database[T]{db: dbs[dbName], TenantId: tenantId, resourceName: resourceName}
-	db.Query = &dao.Query{}
 	return db, nil
 }
 
@@ -39,7 +39,6 @@ type Doc struct {
 type Database[T dao.ObjI[T]] struct {
 	TenantId     string
 	resourceName string
-	Query        *dao.Query
 	updateField  dao.UpdateField
 	//db           *sqlx.DB
 	db *gorm.DB
@@ -85,14 +84,27 @@ func (d *Database[T]) Save(objs ...T) (list []T, err error) {
 		if err2 != nil {
 			return list, err2
 		}
+		var insert bool
+		if record.GetId() == "" {
+			insert = true
+			record.SetId(str.Uuid())
+		}
 		docStr := string(doc)
 		docStr = strings.ReplaceAll(docStr, "'", "''")
-		if record.GetId() == "" {
-			sb.WriteString(fmt.Sprintf(`insert into %s(id,collection,doc)values('%s','%s','%s');`, d.TenantId,
-				record.GetId(), d.TenantId, docStr))
+		if insert {
+			sb.WriteString(fmt.Sprintf(`INSERT INTO %s(id,collection,doc) VALUES ('%s','%s','%s');`,
+				d.TenantId,
+				record.GetId(),
+				d.resourceName,
+				docStr),
+			)
 		} else {
-			sb.WriteString(fmt.Sprintf(`update %s set doc='%s' where id='%s' and collection like '%s';`, d.TenantId,
-				docStr, record.GetId(), d.TenantId))
+			sb.WriteString(fmt.Sprintf(`UPDATE %s SET doc='%s' WHERE id='%s' AND collection = '%s';`,
+				d.TenantId,
+				docStr,
+				record.GetId(),
+				d.resourceName),
+			)
 		}
 
 		// check if step was reached or if it is the last record
