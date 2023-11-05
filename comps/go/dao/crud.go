@@ -1,4 +1,4 @@
-package db
+package dao
 
 import (
 	"github.com/linksoft-dev/single/comps/go/types"
@@ -29,9 +29,6 @@ type ObjI[T any] interface {
 }
 
 type UpdateField []string
-
-type Filter struct {
-}
 
 type Crud[T ObjI[T]] interface {
 	Create(obj T) (T, error)

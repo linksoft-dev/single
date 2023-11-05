@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/huandu/go-sqlbuilder"
 	_ "github.com/lib/pq"
-	db2 "github.com/linksoft-dev/single/comps/go/db"
+	db2 "github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/obj"
 	"gorm.io/gorm"
 	"strings"
