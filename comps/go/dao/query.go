@@ -14,26 +14,27 @@ func NewQuery(mainFilter string) (q Query) {
 }
 
 type Query struct {
-	MainFilter     string
-	TableName      string
-	result         []interface{}
-	records        []map[string]interface{}
-	Fields         []string
-	Ids            []string
-	sql            string
-	Sort           map[string]string
-	RawQuery       string
-	rawParams      []interface{}
-	Limit          int
-	Page           int
-	Last           int
-	First          int
-	Conditions     []condition
-	orgId          string
-	whereCondition []string
-	fixedWhere     string
-	CreatedAtGte   time.Time
-	CreatedAtLte   time.Time
+	MainFilter         string
+	TableName          string
+	result             []interface{}
+	records            []map[string]interface{}
+	Fields             []string
+	Ids                []string
+	sql                string
+	Sort               map[string]string
+	RawQuery           string
+	rawParams          []interface{}
+	Limit              int
+	Page               int
+	Last               int
+	First              int
+	Conditions         []condition
+	orgId              string
+	whereCondition     []string
+	fixedWhere         string
+	CreatedAtGte       time.Time
+	CreatedAtLte       time.Time
+	IncludeSoftDeleted bool
 }
 
 type condition struct {
