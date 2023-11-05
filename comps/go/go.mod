@@ -30,6 +30,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	github.com/tdewolff/minify/v2 v2.12.0
 	github.com/vincent-petithory/dataurl v1.0.0
+	go.opencensus.io v0.22.5
 	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20220823124025-807a23277127
 	golang.org/x/sync v0.3.0
@@ -47,6 +48,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
