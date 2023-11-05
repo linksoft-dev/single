@@ -1,6 +1,7 @@
 package jsonb
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/obj"
+	log "github.com/sirupsen/logrus"
+	"go.opencensus.io/trace"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -128,22 +131,34 @@ func (d *Database[T]) DeleteHard(obj T) error {
 }
 
 func (d *Database[T]) Find(filter dao.Query) (records []T, err error) {
+	ctx, span := trace.StartSpan(context.Background(), "dao/postgres/jsonb/Find")
+	defer span.End()
+
+	// create sql statement
 	sqlSb := sqlbuilder.NewSelectBuilder()
 	sqlSb.Select("*")
 	sqlSb.From(d.TenantId)
 	setWhere(sqlSb, filter, d.resourceName)
 	setOrderBy(sqlSb, filter)
 	setLimit(sqlSb, filter)
-	sql, args := sqlSb.Build()
+	sqlStatement, args := sqlSb.Build()
 
-	// concat os docs em uma string para formar um array de dos em string, para então fazer o marshal para o destino
+	// get docs from database
 	var docs []Doc
-	err = d.Select(&docs, sql, args)
+	err = d.Select(&docs, sqlStatement, args)
 	if err != nil {
 		return nil, err
 	}
 
-	// do unmarshal of all Docs found, concat all docs into list of T to be unmarshal at once
+	ctx, spanParent := trace.StartSpanWithRemoteParent(ctx, "dao/postgres/jsonb/Find/unmarshalDocs", span.SpanContext())
+	err = unmarshalDocs(docs, records)
+	spanParent.End()
+	return
+}
+
+// unmarshalDocs given the docs, return list of T records, this function concat all docs into list of strings
+// then perform unmarshal at once to a list of T structs
+func unmarshalDocs[T any](docs []Doc, records []T) error {
 	var sb strings.Builder
 	sb.WriteString("[")
 	for _, value := range docs {
@@ -153,8 +168,7 @@ func (d *Database[T]) Find(filter dao.Query) (records []T, err error) {
 	str := sb.String()
 	str = strings.TrimSuffix(str, ",")
 	str += "]"
-	err = json.Unmarshal([]byte(str), &records)
-	return
+	return json.Unmarshal([]byte(str), &records)
 }
 
 func (d *Database[T]) Get(id string) (t T, err error) {
@@ -171,6 +185,8 @@ func (d *Database[T]) Get(id string) (t T, err error) {
 	return
 }
 func (d *Database[T]) Select(dest interface{}, query string, args ...interface{}) (err error) {
+	ctx, span := trace.StartSpan(context.Background(), "dao/postgres/jsonb/Select")
+	defer span.End()
 	var result *gorm.DB
 	if d.tx != nil {
 		result = d.tx.Raw(query, args...).Scan(dest)
@@ -182,6 +198,9 @@ func (d *Database[T]) Select(dest interface{}, query string, args ...interface{}
 	if d.createTableIfDoesntExists(err) {
 		result = d.db.Raw(query, args...).Scan(dest)
 		err = result.Error
+	}
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed while execute query")
 	}
 	return
 }
@@ -241,7 +260,12 @@ func setWhere(sb *sqlbuilder.SelectBuilder, filter dao.Query, resourceName strin
 			//return nil, errors.New("Nome da tabela nao foi passado para a Query")
 		}
 
-		sb.Where("deleted_at is null")
+		// if not include soft deleted, it means need to add filter to make sure bring records were
+		// not psychically deleted
+		if filter.IncludeSoftDeleted == false {
+			sb.Where("deleted_at is null")
+		}
+
 		// select the collection
 		if strings.Contains(resourceName, "%") {
 			sb.Where(sb.Like("collection", fmt.Sprintf("'%s%%'", resourceName)))
