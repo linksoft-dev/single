@@ -16,9 +16,7 @@ func init() {
 // Connect efetua uma conexao com o banco de dados
 func Connect(host, port, user, password, dbName string, ssl bool) error {
 	if dbs[dbName] == nil {
-		dsn := getStringConnection(host, port, user, password, dbName, ssl)
-		//db, err := sqlx.Connect("postgres", dsn)
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db, err := getDbConnection(host, port, user, password, dbName, ssl)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -26,20 +24,26 @@ func Connect(host, port, user, password, dbName string, ssl bool) error {
 		if err != nil {
 			if isMissingDatabase(err, dbName) {
 				if err = createDatabase(host, port, user, password, dbName, ssl); err == nil {
-					//db, err = sqlx.Connect("postgres", dsn)
-					db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+					db, err = getDbConnection(host, port, user, password, dbName, ssl)
 					if err != nil {
 						return err
 					}
 				}
 			}
 			if err != nil {
-				log.Error(fmt.Sprintf("Nao foi possivel conectar ao banco de dados: msg %v dsn: %s", err, dsn))
+				log.WithError(err).Errorf("failed when try to connect to database")
 			}
 		}
 		dbs[dbName] = db
 	}
 	return nil
+}
+
+func getDbConnection(host, port, user, password, dbName string, ssl bool) (*gorm.DB, error) {
+	dsn := getStringConnection(host, port, user, password, dbName, ssl)
+	//db, err := sqlx.Connect("postgres", dsn)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	return db, err
 }
 
 // getStringConnection retorna a string de conexao para o banco dado
