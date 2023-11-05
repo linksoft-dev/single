@@ -7,16 +7,20 @@ import (
 	"strings"
 )
 
-// createDatabase função para criar um database, utilize o banco padrão para conectar ao servidor de banco de dados
-// e então executar o comando sql para criar outro banco
+// createDatabase given all necessary parameters, return error if any
 func createDatabase(host, port, user, password, dbName string, ssl bool) error {
-	//dsn := getStringConnection(host, port, user, password, "postgres", ssl)
-	//db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	//if err != nil {
-	//	return err
-	//}
-	//db.Exec(fmt.Sprintf("CREATE DATABASE \"%s\";", dbName))
-	return nil
+	db, err := getDbConnection(host, port, user, password, dbName, ssl)
+	if err != nil {
+		return err
+	}
+	tx := db.Exec(fmt.Sprintf("CREATE DATABASE \"%s\";", dbName))
+	if tx != nil {
+		if tx.Error == nil {
+			return nil
+		}
+		return tx.Error
+	}
+	return fmt.Errorf("failed when try to create database %s, no retunred error message", dbName)
 }
 
 // createTableIfDoesntExists based on the error, check if it's needed to create a table for current tenantId
