@@ -1,9 +1,7 @@
 package jsonb
 
 import (
-	"fmt"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -84,21 +82,10 @@ func (m *MigrationModel) GetMigrationNumber() int64 {
 //	return nil
 //}
 
-// isMissingDatabase function to return if the error is related to database
-func isMissingDatabase(err error, dbName string) bool {
-	msg := fmt.Sprintf("database \"%s\" does not exist", dbName)
-	return strings.Contains(err.Error(), msg)
-}
+//
 
 //
-//// isMissingTable function to return if the error is related to missing table
-//func (d *Database) isMissingTable(err error) bool {
-//	if err == nil {
-//		return false
-//	}
-//	return strings.Contains(err.Error(), "relation \"") &&
-//		strings.Contains(err.Error(), "\" does not exist")
-//}
+
 //
 //// createTable cria uma tabela baseada na mensagem de erro
 //func (d *Database) createTable(e error) bool {
@@ -114,18 +101,3 @@ func isMissingDatabase(err error, dbName string) bool {
 //	return false
 //}
 //
-//// isMissingColumn function to return if the error is related to missing column
-//func (d *Database) isMissingColumn(err error) bool {
-//	return strings.Contains(err.Error(), "column \"") &&
-//		strings.Contains(err.Error(), "\" does not exist")
-//}
-//
-//// isAuthenticationError function to return if the error is related Authentication for the database
-//func (d *Database) isAuthenticationError(err error) bool {
-//	return strings.Contains(err.Error(), "authentication failed")
-//}
-//
-//// isDuplicatedFieldError function to return if the error is related duplicate Field
-//func (d *Database) isDuplicatedFieldError(err error) bool {
-//	return strings.Contains(err.Error(), "duplicate key Value violates unique constraint")
-//}

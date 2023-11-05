@@ -41,3 +41,14 @@ func Connect(host, port, user, password, dbName string, ssl bool) error {
 	}
 	return nil
 }
+
+// getStringConnection retorna a string de conexao para o banco dado
+func getStringConnection(host, port, user, password, dbName string, ssl bool) string {
+	sslMode := "disable"
+	if ssl {
+		sslMode = "enable"
+	}
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s "+
+		"dbname=%s sslmode=%s connect_timeout=5", host, port,
+		user, password, dbName, sslMode)
+}
