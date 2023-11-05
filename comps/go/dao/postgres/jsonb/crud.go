@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/huandu/go-sqlbuilder"
 	_ "github.com/lib/pq"
-	db2 "github.com/linksoft-dev/single/comps/go/dao"
+	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/obj"
 	"gorm.io/gorm"
 	"strings"
@@ -20,9 +20,9 @@ const (
 )
 
 // NewDataBase factory method para criar uma isntancia da struct Database
-func NewDataBase[T db2.ObjI[T]](dbName, tenantId, resourceName string) (*Database[T], error) {
+func NewDataBase[T dao.ObjI[T]](dbName, tenantId, resourceName string) (*Database[T], error) {
 	db := &Database[T]{db: dbs[dbName], TenantId: tenantId, resourceName: resourceName}
-	db.Query = &db2.Query{}
+	db.Query = &dao.Query{}
 	return db, nil
 }
 
@@ -33,11 +33,11 @@ type Doc struct {
 	Doc        string
 }
 
-type Database[T db2.ObjI[T]] struct {
+type Database[T dao.ObjI[T]] struct {
 	TenantId     string
 	resourceName string
-	Query        *db2.Query
-	updateField  db2.UpdateField
+	Query        *dao.Query
+	updateField  dao.UpdateField
 	//db           *sqlx.DB
 	db *gorm.DB
 	tx *gorm.DB // guardar conexao quando for uma transacao
@@ -55,7 +55,7 @@ func (d *Database[T]) Create(obj T) (T, error) {
 	return obj, nil
 }
 
-func (d *Database[T]) Update(obj T, fields db2.UpdateField) error {
+func (d *Database[T]) Update(obj T, fields dao.UpdateField) error {
 	d.updateField = fields
 	_, err := d.Save(obj)
 	if err != nil {
@@ -64,11 +64,12 @@ func (d *Database[T]) Update(obj T, fields db2.UpdateField) error {
 	return nil
 }
 
+// Save objects whatever is insert or update, based on id the save method decide which operation is
 func (d *Database[T]) Save(objs ...T) (list []T, err error) {
 	if err = d.StartTransaction(); err != nil {
 		return
 	}
-	var sql strings.Builder
+	var sb strings.Builder
 	count := 0
 	step := 1000
 	length := len(objs)
@@ -84,24 +85,24 @@ func (d *Database[T]) Save(objs ...T) (list []T, err error) {
 		docStr := string(doc)
 		docStr = strings.ReplaceAll(docStr, "'", "''")
 		if record.GetId() == "" {
-			sql.WriteString(fmt.Sprintf(`insert into %s(id,collection,doc)values('%s','%s','%s');`, d.TenantId,
+			sb.WriteString(fmt.Sprintf(`insert into %s(id,collection,doc)values('%s','%s','%s');`, d.TenantId,
 				record.GetId(), d.TenantId, docStr))
 		} else {
-			sql.WriteString(fmt.Sprintf(`update %s set doc='%s' where id='%s' and collection like '%s';`, d.TenantId,
+			sb.WriteString(fmt.Sprintf(`update %s set doc='%s' where id='%s' and collection like '%s';`, d.TenantId,
 				docStr, record.GetId(), d.TenantId))
 		}
 
 		// check if step was reached or if it is the last record
 		if count == step || idx == length-1 {
 			count = 0
-			result := d.db.Exec(sql.String())
+			result := d.db.Exec(sb.String())
 			if err2 != nil {
 				return
 			}
 			if result.Error != nil {
 				return
 			}
-			sql.Reset()
+			sb.Reset()
 		}
 	}
 	err = d.CommitTransaction()
@@ -126,7 +127,7 @@ func (d *Database[T]) DeleteHard(obj T) error {
 	return nil
 }
 
-func (d *Database[T]) Find(filter db2.Query) (records []T, err error) {
+func (d *Database[T]) Find(filter dao.Query) (records []T, err error) {
 	sqlSb := sqlbuilder.NewSelectBuilder()
 	sqlSb.Select("*")
 	sqlSb.From(d.TenantId)
@@ -157,7 +158,7 @@ func (d *Database[T]) Find(filter db2.Query) (records []T, err error) {
 }
 
 func (d *Database[T]) Get(id string) (t T, err error) {
-	filter := db2.Query{}
+	filter := dao.Query{}
 	filter.First = 1
 	filter.Eq("id", id)
 	records, err := d.Find(filter)
@@ -233,7 +234,7 @@ func (d *Database[T]) getValidationError(err error) error {
 	return err
 }
 
-func setWhere(sb *sqlbuilder.SelectBuilder, filter db2.Query, resourceName string) {
+func setWhere(sb *sqlbuilder.SelectBuilder, filter dao.Query, resourceName string) {
 	// se estiver consultado com rawquery, nao processe nada, apenas faça o scan para o `dest`
 	if filter.RawQuery == "" {
 		if resourceName == "" {
@@ -259,7 +260,7 @@ func setWhere(sb *sqlbuilder.SelectBuilder, filter db2.Query, resourceName strin
 				// converts some special values to the right format
 				switch val := c.Value.(type) {
 				case time.Time:
-					if val.Hour() == 0 && c.Operator == db2.OperatorLte {
+					if val.Hour() == 0 && c.Operator == dao.OperatorLte {
 						val = time.Date(val.Year(), val.Month(), val.Day(), 23, 59, 59, 0, time.Local)
 					}
 					c.Value = val.Format("2006-01-02T15:04:05")
@@ -274,37 +275,37 @@ func setWhere(sb *sqlbuilder.SelectBuilder, filter db2.Query, resourceName strin
 				}
 
 				switch c.Operator {
-				case db2.OperatorEquals:
+				case dao.OperatorEquals:
 					if c.Value == nil {
 						sb.Where(sb.IsNull(c.Field))
 					} else {
 						sb.Where(fmt.Sprintf("%s = ?", c.Field))
 					}
-				case db2.OperatorNotEquals:
+				case dao.OperatorNotEquals:
 					if c.Value == nil {
 						sb.Where(sb.IsNotNull(c.Field))
 					} else {
 						sb.Where(sb.NE(c.Field, c.Value))
 					}
-				case db2.OperatorStarts:
+				case dao.OperatorStarts:
 					sb.Where(fmt.Sprintf("%s ilike %s%%", c.Field, c.Value))
-				case db2.OperatorContains:
+				case dao.OperatorContains:
 					sb.Where(fmt.Sprintf("%s ilike %%%s%%", c.Field, c.Value))
-				case db2.OperatorIn:
+				case dao.OperatorIn:
 					stringArray := obj.ToStringArray(c.Value)
 					sb.Where(sb.In(c.Field, stringArray))
 					continue
-				case db2.OperatorNotIn:
+				case dao.OperatorNotIn:
 					stringArray := obj.ToStringArray(c.Value)
 					sb.Where(sb.NotIn(c.Field, stringArray))
 					continue
-				case db2.OperatorGte:
+				case dao.OperatorGte:
 					sb.Where(sb.GE(c.Field, c.Value))
-				case db2.OperatorGt:
+				case dao.OperatorGt:
 					sb.Where(sb.G(c.Field, c.Value))
-				case db2.OperatorLte:
+				case dao.OperatorLte:
 					sb.Where(sb.LE(c.Field, c.Value))
-				case db2.OperatorLt:
+				case dao.OperatorLt:
 					sb.Where(sb.L(c.Field, c.Value))
 				}
 			}
@@ -313,7 +314,7 @@ func setWhere(sb *sqlbuilder.SelectBuilder, filter db2.Query, resourceName strin
 	}
 }
 
-func setOrderBy(sb *sqlbuilder.SelectBuilder, filter db2.Query) {
+func setOrderBy(sb *sqlbuilder.SelectBuilder, filter dao.Query) {
 	//Se o Sort n ta com o cast pro doc, o mesmo deve ser adicionado
 	for i, v := range filter.Sort {
 		if !strings.Contains(i, "doc") {
@@ -341,7 +342,7 @@ func setOrderBy(sb *sqlbuilder.SelectBuilder, filter db2.Query) {
 	}
 }
 
-func setLimit(sb *sqlbuilder.SelectBuilder, filter db2.Query) {
+func setLimit(sb *sqlbuilder.SelectBuilder, filter dao.Query) {
 	if filter.Limit > 0 {
 		sb.Limit(filter.Limit)
 	}
