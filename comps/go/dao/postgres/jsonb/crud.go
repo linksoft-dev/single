@@ -11,7 +11,8 @@ import (
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/obj"
 	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -23,9 +24,20 @@ const (
 	duplicatedFieldCode = "23505"
 )
 
+var tracer trace.Tracer
+
+func init() {
+	tracer = otel.GetTracerProvider().Tracer("single/dao/postgres/jsonb")
+}
+
 // NewDataBase factory method para criar uma isntancia da struct Database
-func NewDataBase[T dao.ObjI[T]](dbName, tenantId, resourceName string) (*Database[T], error) {
-	db := &Database[T]{db: dbs[dbName], TenantId: tenantId, resourceName: resourceName}
+func NewDataBase[T dao.ObjI[T]](ctx context.Context, dbName, tenantId, resourceName string) (*Database[T], error) {
+	db := &Database[T]{
+		ctx:          ctx,
+		db:           dbs[dbName],
+		TenantId:     tenantId,
+		resourceName: resourceName,
+	}
 	return db, nil
 }
 
@@ -37,6 +49,7 @@ type Doc struct {
 }
 
 type Database[T dao.ObjI[T]] struct {
+	ctx          context.Context
 	TenantId     string
 	resourceName string
 	updateField  dao.UpdateField
@@ -138,9 +151,10 @@ func (d *Database[T]) DeleteHard(obj T) error {
 	return nil
 }
 
-func (d *Database[T]) Find(filter dao.Query) (records []T, err error) {
-	ctx, span := trace.StartSpan(context.Background(), "dao/postgres/jsonb/Find")
+func (d *Database[T]) Find(ctx context.Context, filter dao.Query) (records []T, err error) {
+	ctx, span := tracer.Start(ctx, "dao/postgres/jsonb/Find")
 	defer span.End()
+	d.ctx = ctx
 
 	// create sql statement
 	sqlSb := sqlbuilder.NewSelectBuilder()
@@ -158,7 +172,7 @@ func (d *Database[T]) Find(filter dao.Query) (records []T, err error) {
 		return nil, err
 	}
 
-	ctx, spanParent := trace.StartSpanWithRemoteParent(ctx, "dao/postgres/jsonb/Find/unmarshalDocs", span.SpanContext())
+	ctx, spanParent := tracer.Start(ctx, "dao/postgres/jsonb/Find/unmarshalDocs")
 	err = unmarshalDocs(docs, &records)
 	spanParent.End()
 	return
@@ -183,7 +197,7 @@ func (d *Database[T]) Get(id string) (t T, err error) {
 	filter := dao.Query{}
 	filter.First = 1
 	filter.Eq("id", id)
-	records, err := d.Find(filter)
+	records, err := d.Find(d.ctx, filter)
 	if err != nil {
 		return
 	}
@@ -193,7 +207,7 @@ func (d *Database[T]) Get(id string) (t T, err error) {
 	return
 }
 func (d *Database[T]) Select(dest interface{}, query string, args ...interface{}) (err error) {
-	ctx, span := trace.StartSpan(context.Background(), "dao/postgres/jsonb/Select")
+	ctx, span := tracer.Start(d.ctx, "dao/postgres/jsonb/Select")
 	defer span.End()
 	var result *gorm.DB
 	if d.tx != nil {

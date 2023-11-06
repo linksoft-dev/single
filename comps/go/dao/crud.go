@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"context"
 	"github.com/linksoft-dev/single/comps/go/types"
 	"time"
 )
@@ -36,6 +37,6 @@ type Crud[T ObjI[T]] interface {
 	Save(insert bool, obj ...T) ([]T, error)
 	Delete(T) error
 	DeleteHard(T) error
-	Find(filter Query) ([]T, error)
+	Find(ctx context.Context, filter Query) ([]T, error)
 	Get(id string) (T, error)
 }
