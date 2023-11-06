@@ -9,7 +9,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/obj"
-	"github.com/linksoft-dev/single/comps/go/str"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	"gorm.io/gorm"
@@ -86,7 +85,6 @@ func (d *Database[T]) Save(insert bool, objs ...T) (list []T, err error) {
 		}
 		if record.GetId() == "" {
 			insert = true
-			record.SetId(str.Uuid())
 		}
 		docStr := string(doc)
 		docStr = strings.ReplaceAll(docStr, "'", "''")
