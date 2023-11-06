@@ -40,8 +40,10 @@ func (g *Adapter) AddApp(app rest.AppInterface) {
 	g.apps = append(g.apps, app)
 }
 
-func (g *Adapter) Run() error {
+var routes map[string]http.HandlerFunc
 
+func (g *Adapter) Run() error {
+	routes = map[string]http.HandlerFunc{}
 	if fiberApp == nil {
 		fiberApp = fiber.New(g.config)
 
@@ -63,13 +65,20 @@ func (g *Adapter) Run() error {
 			if restRouters != nil {
 				for _, route := range *restRouters {
 					route.Path = convertBraceToColon(route.Path)
-					apiGroup.Add(route.Method, route.Path, func(c *fiber.Ctx) error {
-						r := getRequestFromFiberContext(c)
-						res := NewCustomResponseWriter()
-						route.Handler(res, r)
-						c.Write(res.body)
-						return c.SendString(string(res.body))
-					})
+					apiGroup.Add(route.Method, route.Path, adaptor.HTTPHandlerFunc(route.Handler))
+					//routes[route.Path] = route.Handler
+					//
+					//apiGroup.Add(route.Method, route.Path, func(c *fiber.Ctx) error {
+					//	r := getRequestFromFiberContext(c)
+					//	res := NewCustomResponseWriter()
+					//	path := strings.ReplaceAll(c.Route().Path, g.prefix, "")
+					//	handlerFunc := routes[path]
+					//	if handlerFunc != nil {
+					//		handlerFunc(res, r)
+					//	}
+					//	c.Write(res.body)
+					//	return c.SendString(string(res.body))
+					//})
 
 					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": g.prefix + route.Path})
 				}
