@@ -46,7 +46,7 @@ type Database[T dao.ObjI[T]] struct {
 }
 
 func (d *Database[T]) Create(obj T) (T, error) {
-	list, err := d.Save(obj)
+	list, err := d.Save(true, obj)
 	if err != nil {
 		return obj, err
 	}
@@ -59,7 +59,7 @@ func (d *Database[T]) Create(obj T) (T, error) {
 
 func (d *Database[T]) Update(obj T, fields dao.UpdateField) error {
 	d.updateField = fields
-	_, err := d.Save(obj)
+	_, err := d.Save(false, obj)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (d *Database[T]) Update(obj T, fields dao.UpdateField) error {
 }
 
 // Save objects whatever is insert or update, based on id the save method decide which operation is
-func (d *Database[T]) Save(objs ...T) (list []T, err error) {
+func (d *Database[T]) Save(insert bool, objs ...T) (list []T, err error) {
 	if err = d.StartTransaction(); err != nil {
 		return
 	}
@@ -84,7 +84,6 @@ func (d *Database[T]) Save(objs ...T) (list []T, err error) {
 		if err2 != nil {
 			return list, err2
 		}
-		var insert bool
 		if record.GetId() == "" {
 			insert = true
 			record.SetId(str.Uuid())
@@ -163,14 +162,14 @@ func (d *Database[T]) Find(filter dao.Query) (records []T, err error) {
 	}
 
 	ctx, spanParent := trace.StartSpanWithRemoteParent(ctx, "dao/postgres/jsonb/Find/unmarshalDocs", span.SpanContext())
-	err = unmarshalDocs(docs, records)
+	err = unmarshalDocs(docs, &records)
 	spanParent.End()
 	return
 }
 
 // unmarshalDocs given the docs, return list of T records, this function concat all docs into list of strings
 // then perform unmarshal at once to a list of T structs
-func unmarshalDocs[T any](docs []Doc, records []T) error {
+func unmarshalDocs[T any](docs []Doc, records *[]T) error {
 	var sb strings.Builder
 	sb.WriteString("[")
 	for _, value := range docs {
@@ -180,7 +179,7 @@ func unmarshalDocs[T any](docs []Doc, records []T) error {
 	str := sb.String()
 	str = strings.TrimSuffix(str, ",")
 	str += "]"
-	return json.Unmarshal([]byte(str), &records)
+	return json.Unmarshal([]byte(str), records)
 }
 
 func (d *Database[T]) Get(id string) (t T, err error) {
