@@ -33,7 +33,7 @@ type UpdateField []string
 type Crud[T ObjI[T]] interface {
 	Create(obj T) (T, error)
 	Update(obj T, fields UpdateField) error
-	Save(obj ...T) ([]T, error)
+	Save(insert bool, obj ...T) ([]T, error)
 	Delete(T) error
 	DeleteHard(T) error
 	Find(filter Query) ([]T, error)
