@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/huandu/go-sqlbuilder"
 	_ "github.com/lib/pq"
@@ -83,9 +84,6 @@ func (d *Database[T]) Save(insert bool, objs ...T) (list []T, err error) {
 		if err2 != nil {
 			return list, err2
 		}
-		if record.GetId() == "" {
-			insert = true
-		}
 		docStr := string(doc)
 		docStr = strings.ReplaceAll(docStr, "'", "''")
 		if insert {
@@ -118,6 +116,7 @@ func (d *Database[T]) Save(insert bool, objs ...T) (list []T, err error) {
 		}
 	}
 	err = d.CommitTransaction()
+	list = objs
 	return
 }
 
@@ -214,39 +213,32 @@ func (d *Database[T]) Select(dest interface{}, query string, args ...interface{}
 	return
 }
 
-// Insert inicia uma transacao
 func (d *Database[T]) StartTransaction() (err error) {
-	//d.tx = d.db.Begin()
-	//err = d.tx.Error
+	d.tx = d.db.Begin()
+	err = d.tx.Error
 	return err
 }
 
-// Insert commita uma transacao,
-// o rollback eh feito automatico caso alguma operacao tenah erro dentro do scopo do banco de dados
 func (d *Database[T]) CommitTransaction() (err error) {
-	//if d.tx == nil {
-	//	err = errors.New("Tentando fazer commit em uma transacao mas a mesma nao foi iniciada")
-	//	return
-	//}
-	//
-	//d.tx.Commit()
-	//err = d.tx.Error
-	//d.tx = nil
+	if d.tx == nil {
+		err = errors.New("trying to commit a non started transaction")
+		return
+	}
+
+	d.tx.Commit()
+	err = d.tx.Error
+	d.tx = nil
 	return err
 }
 
-// RollbackTransaction rollback é realizado automático dentro do socopo das operacoes de banco,
-// se houver um erro em operacoes de banco de dados, entao é feito um rollback caso uma transacao tenha sido iniciada,
-// porém há situacoes que o rollback precisa ser chamado caso tenha erro em outra camadas fora das operacoes de banco
-// de dados, geralmente usando funcao defer para ter a certeza do rollback em caso de erro
 func (d *Database[T]) RollbackTransaction() (err error) {
-	//if d.tx == nil {
-	//	err = errors.New("Tentando fazer rollback em uma transacao mas a mesma nao foi iniciada")
-	//	return
-	//}
-	//d.tx.Rollback()
-	//err = d.tx.Error
-	//d.tx = nil
+	if d.tx == nil {
+		err = errors.New("trying to commit a non started transaction")
+		return
+	}
+	d.tx.Rollback()
+	err = d.tx.Error
+	d.tx = nil
 	return err
 }
 
