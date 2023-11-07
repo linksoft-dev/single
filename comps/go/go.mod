@@ -25,7 +25,7 @@ require (
 	github.com/rodrigorodriguescosta/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/segmentio/ksuid v1.0.4
 	github.com/shopspring/decimal v1.3.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	github.com/spf13/afero v1.10.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tdewolff/minify/v2 v2.12.0
@@ -41,6 +41,7 @@ require (
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5
+	gorm.io/plugin/opentelemetry v0.1.4
 )
 
 require (

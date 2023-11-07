@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 var dbs map[string]*gorm.DB
@@ -33,6 +34,9 @@ func Connect(host, port, user, password, dbName string, ssl bool) error {
 			if err != nil {
 				log.WithError(err).Errorf("failed when try to connect to database")
 			}
+		}
+		if err := db.Use(tracing.NewPlugin()); err != nil {
+			panic(err)
 		}
 		dbs[dbName] = db
 	}
