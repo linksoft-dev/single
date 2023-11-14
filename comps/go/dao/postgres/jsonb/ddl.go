@@ -26,7 +26,7 @@ func createDatabase(host, port, user, password, dbName string, ssl bool) error {
 // createTableIfDoesntExists based on the error, check if it's needed to create a table for current tenantId
 func (d *Database[T]) createTableIfDoesntExists(err error) bool {
 	if isMissingTable(err) {
-		log.Errorf("creating table... '%v'", d.TenantId)
+		log.Warnf("creating table... '%v'", d.TenantId)
 		result := d.db.Exec(getDocTableDDL(d.TenantId))
 		if result != nil {
 			if result.Error == nil {
