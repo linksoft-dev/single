@@ -9,7 +9,7 @@ import (
 
 // createDatabase given all necessary parameters, return error if any
 func createDatabase(host, port, user, password, dbName string, ssl bool) error {
-	db, err := getDbConnection(host, port, user, password, dbName, ssl)
+	db, err := getDbConnection(host, port, user, password, "postgres", ssl)
 	if err != nil {
 		return err
 	}
