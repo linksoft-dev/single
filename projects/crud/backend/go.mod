@@ -9,7 +9,7 @@ require (
 	github.com/graphql-go/graphql v0.8.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
 	github.com/linksoft-dev/single/comps/go v0.0.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	google.golang.org/grpc v1.58.0
 )
 
@@ -29,7 +29,7 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
