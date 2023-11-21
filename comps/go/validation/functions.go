@@ -9,9 +9,12 @@ import (
 
 // IsCpfCnpjValid verifica se o valor passado é um cpf ou cnpj valido
 func IsCpfCnpjValid(value string) bool {
-	valid := brdoc.IsCPF(value)
+	valid := brdoc.IsCNPJ(value)
 	if !valid {
-		valid = brdoc.IsCNPJ(value)
+		if len(value) > 11 {
+			value = value[len(value)-11:]
+		}
+		valid = brdoc.IsCPF(value)
 	}
 	return valid
 }
