@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 
-class MyForm extends StatefulWidget {
+class CrudFormDetail extends StatefulWidget {
+  final String screenName;
+
+  CrudFormDetail({required this.screenName});
+
   @override
-  _MyFormState createState() => _MyFormState();
+  _CrudFormDetail createState() => _CrudFormDetail(this.screenName);
 }
 
-class _MyFormState extends State<MyForm> {
+class _CrudFormDetail extends State<CrudFormDetail> {
+  _CrudFormDetail(this._currentScreen);
+
   Widget _widgetToShow = Container(); // Initial empty widget
+  String _currentScreen = "base"; // Changed to private
+  String get currentScreen => _currentScreen; // Getter
 
   void _include() {
     setState(() {
-      _widgetToShow = Text('Include page'); // Include widget
+      _widgetToShow = Text('Including in $currentScreen'); // Include widget
     });
   }
 
@@ -32,6 +40,21 @@ class _MyFormState extends State<MyForm> {
     });
   }
 
+  List<Widget> customButtons() {
+    return [];
+  }
+
+  buildButtons() {
+    List<Widget> buttons = [
+      ElevatedButton(onPressed: _include, child: Text('Inlcuir')),
+      ElevatedButton(onPressed: _edit, child: Text('Editar')),
+      ElevatedButton(onPressed: _save, child: Text('salvar')),
+      ElevatedButton(onPressed: _delete, child: Text('Delete')),
+    ];
+
+    return buttons + customButtons();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -42,12 +65,7 @@ class _MyFormState extends State<MyForm> {
           color: Colors.grey[300],
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(onPressed: _include, child: Text('Include')),
-              ElevatedButton(onPressed: _edit, child: Text('Edit')),
-              ElevatedButton(onPressed: _save, child: Text('Save')),
-              ElevatedButton(onPressed: _delete, child: Text('Delete')),
-            ],
+            children: buildButtons(),
           ),
         ),
         // Area to display dynamic widgets

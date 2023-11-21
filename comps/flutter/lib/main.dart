@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:single/apps/contas/Form.dart';
 import 'package:single/pages/app.dart';
 import 'package:single/pages/app2.dart';
 // import 'apps/person/Form.dart';
+import 'apps/person/Form.dart';
 import 'forms/CrudFormDetail.dart';
 
 void main() {
   List<Pages> pages = [];
-  pages.add(Pages("Teste1", "/teste1", (context) => FirstScreen()));
-  pages.add(Pages("Teste2", "/teste2", (context) => SecondScreen()));
-  pages.add(Pages("Cadastro", "/cadastro", (context) => SecondScreen()));
-  pages.add(Pages("Financeiro", "/financeiro", (context) => SecondScreen()));
-  pages.add(Pages("estoque", "/estoque", (context) => SecondScreen()));
+  pages.add(Pages("Pessoa", "/pessoa", (context) => PersonForm()));
+  pages.add(Pages("Contas Receber", "/teste2", (context) => ContasForm()));
   var app = App("crud", pages);
 
   runApp(app);
