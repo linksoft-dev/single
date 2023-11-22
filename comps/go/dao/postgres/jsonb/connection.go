@@ -17,9 +17,6 @@ func init() {
 func Connect(host, port, user, password, dbName string, ssl bool) error {
 	if dbs[dbName] == nil {
 		db, err := getDbConnection(host, port, user, password, dbName, ssl)
-		if err != nil {
-			log.Fatal(err)
-		}
 
 		if err != nil {
 			if isMissingDatabase(err, dbName) {
