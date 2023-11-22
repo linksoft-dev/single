@@ -2,19 +2,36 @@ import 'package:flutter/material.dart';
 
 class CrudFormDetail extends StatefulWidget {
   final String screenName;
+  final Widget body;
+  List<Widget> customButtons = [];
 
-  CrudFormDetail({required this.screenName});
+  CrudFormDetail({
+    required this.screenName,
+    required this.body,
+    this.customButtons ,
+  }): customButtons = customButtons ?? [];
 
   @override
-  _CrudFormDetail createState() => _CrudFormDetail(this.screenName);
+  _CrudFormDetail createState() => _CrudFormDetail(
+      this.screenName,
+      this.body,
+      this.customButtons,
+  );
 }
 
 class _CrudFormDetail extends State<CrudFormDetail> {
-  _CrudFormDetail(this._currentScreen);
+  final Widget body;
+  List<Widget>? customButtons = [];
+
+  _CrudFormDetail(
+      this._currentScreen,
+      this.body,
+      this.customButtons,
+      );
 
   Widget _widgetToShow = Container(); // Initial empty widget
   String _currentScreen = "base"; // Changed to private
-  String get currentScreen => _currentScreen; // Getter
+  String get currentScreen => _currentScreen;
 
   void _include() {
     setState(() {
@@ -40,10 +57,6 @@ class _CrudFormDetail extends State<CrudFormDetail> {
     });
   }
 
-  List<Widget> customButtons() {
-    return [];
-  }
-
   buildButtons() {
     List<Widget> buttons = [
       ElevatedButton(onPressed: _include, child: Text('Inlcuir')),
@@ -51,8 +64,10 @@ class _CrudFormDetail extends State<CrudFormDetail> {
       ElevatedButton(onPressed: _save, child: Text('salvar')),
       ElevatedButton(onPressed: _delete, child: Text('Delete')),
     ];
-
-    return buttons + customButtons();
+    if (customButtons == null) {
+      return buttons;
+    }
+    return buttons + customButtons;
   }
 
   @override
