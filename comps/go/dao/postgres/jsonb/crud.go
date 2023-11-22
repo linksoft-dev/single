@@ -167,7 +167,7 @@ func (d *Database[T]) Find(ctx context.Context, filter dao.Query) (records []T, 
 
 	// get docs from database
 	var docs []Doc
-	err = d.Select(&docs, sqlStatement, args)
+	err = d.Select(&docs, sqlStatement, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -288,71 +288,76 @@ func setWhere(sb *sqlbuilder.SelectBuilder, filter dao.Query, resourceName strin
 			sb.Where(sb.E("collection", resourceName))
 		}
 
-		// caso nao tenha passado o campo doc, adicione automaticamente
-		for idx, value := range filter.Conditions {
-			if !strings.Contains(value.Field, "doc") {
-				filter.Conditions[idx].Field = fmt.Sprintf("doc ->> '%s'", value.Field)
+		for _, value := range filter.OrCondition {
+			var conditions []string
+			for _, cond := range value {
+				conditions = append(conditions, processStatement(cond, sb))
 			}
+			sb.Where(sb.Or(conditions...))
+		}
 
-			for _, c := range filter.Conditions {
-
-				// converts some special values to the right format
-				switch val := c.Value.(type) {
-				case time.Time:
-					if val.Hour() == 0 && c.Operator == dao.OperatorLte {
-						val = time.Date(val.Year(), val.Month(), val.Day(), 23, 59, 59, 0, time.Local)
-					}
-					c.Value = val.Format("2006-01-02T15:04:05")
-				case bool:
-					c.Value = fmt.Sprintf("%t", c.Value)
-				case float64:
-					c.Field = fmt.Sprintf("COALESCE((%s)::float, 0) %s", c.Field, c.Operator)
-					c.Value = fmt.Sprintf("%f", c.Value)
-				case int:
-					c.Field = fmt.Sprintf("COALESCE((%s)::integer, 0) %s", c.Field, c.Operator)
-					c.Value = fmt.Sprintf("%d", c.Value)
-				}
-
-				switch c.Operator {
-				case dao.OperatorEquals:
-					if c.Value == nil {
-						sb.Where(sb.IsNull(c.Field))
-					} else {
-						sb.Where(fmt.Sprintf("%s = ?", c.Field))
-					}
-				case dao.OperatorNotEquals:
-					if c.Value == nil {
-						sb.Where(sb.IsNotNull(c.Field))
-					} else {
-						sb.Where(sb.NE(c.Field, c.Value))
-					}
-				case dao.OperatorStarts:
-					sb.Where(fmt.Sprintf("%s ilike %s%%", c.Field, c.Value))
-				case dao.OperatorContains:
-					sb.Where(fmt.Sprintf("%s ilike %%%s%%", c.Field, c.Value))
-				case dao.OperatorIn:
-					stringArray := obj.ToStringArray(c.Value)
-					sb.Where(sb.In(c.Field, stringArray))
-					continue
-				case dao.OperatorNotIn:
-					stringArray := obj.ToStringArray(c.Value)
-					sb.Where(sb.NotIn(c.Field, stringArray))
-					continue
-				case dao.OperatorGte:
-					sb.Where(sb.GE(c.Field, c.Value))
-				case dao.OperatorGt:
-					sb.Where(sb.G(c.Field, c.Value))
-				case dao.OperatorLte:
-					sb.Where(sb.LE(c.Field, c.Value))
-				case dao.OperatorLt:
-					sb.Where(sb.L(c.Field, c.Value))
-				}
-			}
-
+		for _, value := range filter.Conditions {
+			sb.Where(processStatement(value, sb))
 		}
 	}
 }
 
+// processStatement this function return the value ready to be used in the query
+func processStatement(c dao.Condition, sb *sqlbuilder.SelectBuilder) (r string) {
+	if !strings.Contains(c.Field, "doc") {
+		c.Field = fmt.Sprintf("doc ->> '%s'", c.Field)
+	}
+	// converts some special values to the right format
+	switch val := c.Value.(type) {
+	case time.Time:
+		if val.Hour() == 0 && c.Operator == dao.OperatorLte {
+			val = time.Date(val.Year(), val.Month(), val.Day(), 23, 59, 59, 0, time.Local)
+		}
+		c.Value = val.Format("2006-01-02T15:04:05")
+	case bool:
+		c.Value = fmt.Sprintf("%t", c.Value)
+	case float64:
+		c.Field = fmt.Sprintf("COALESCE((%s)::float, 0) %s", c.Field, c.Operator)
+		c.Value = fmt.Sprintf("%f", c.Value)
+	case int:
+		c.Field = fmt.Sprintf("COALESCE((%s)::integer, 0) %s", c.Field, c.Operator)
+		c.Value = fmt.Sprintf("%d", c.Value)
+	}
+
+	switch c.Operator {
+	case dao.OperatorEquals:
+		if c.Value == nil {
+			r = sb.IsNull(c.Field)
+		} else {
+			r = sb.E(c.Field, c.Value)
+		}
+	case dao.OperatorNotEquals:
+		if c.Value == nil {
+			r = sb.IsNotNull(c.Field)
+		} else {
+			r = sb.NE(c.Field, c.Value)
+		}
+	case dao.OperatorStarts:
+		r = fmt.Sprintf("%s ilike '%s%%'", c.Field, c.Value)
+	case dao.OperatorContains:
+		r = fmt.Sprintf("%s ilike '%%%s%%'", c.Field, c.Value)
+	case dao.OperatorIn:
+		stringArray := obj.ToStringArray(c.Value)
+		r = sb.In(c.Field, stringArray)
+	case dao.OperatorNotIn:
+		stringArray := obj.ToStringArray(c.Value)
+		r = sb.NotIn(c.Field, stringArray)
+	case dao.OperatorGte:
+		r = sb.GE(c.Field, c.Value)
+	case dao.OperatorGt:
+		r = sb.G(c.Field, c.Value)
+	case dao.OperatorLte:
+		r = sb.LE(c.Field, c.Value)
+	case dao.OperatorLt:
+		r = sb.L(c.Field, c.Value)
+	}
+	return
+}
 func setOrderBy(sb *sqlbuilder.SelectBuilder, filter dao.Query) {
 	//Se o Sort n ta com o cast pro doc, o mesmo deve ser adicionado
 	for i, v := range filter.Sort {
