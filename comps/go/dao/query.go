@@ -1,20 +1,18 @@
 package dao
 
 import (
-	"github.com/linksoft-dev/single/comps/go/str"
+	"github.com/linksoft-dev/single/comps/go/obj"
 	"strings"
 	"time"
 )
 
-func NewQuery(mainFilter string) (q Query) {
-	q.MainFilter = str.UpperNoSpaceNoAccent(mainFilter)
+func NewQuery() (q Query) {
 	q.Limit = 50
 	q.Page = 1
 	return
 }
 
 type Query struct {
-	MainFilter         string
 	TableName          string
 	result             []interface{}
 	records            []map[string]interface{}
@@ -28,43 +26,66 @@ type Query struct {
 	Page               int
 	Last               int
 	First              int
-	Conditions         []condition
+	Conditions         []Condition
+	OrCondition        map[int][]Condition
 	orgId              string
 	whereCondition     []string
 	fixedWhere         string
 	CreatedAtGte       time.Time
 	CreatedAtLte       time.Time
 	IncludeSoftDeleted bool
+	hasFullSearch      bool
 }
 
-type condition struct {
-	Field    string
-	Operator operator
-	Value    interface{}
+type Condition struct {
+	Field          string
+	Operator       Operator
+	Value          interface{}
+	FilterOperator string
 }
 
-type operator string
+type Operator string
 
 const (
-	OperatorEquals    operator = "="
-	OperatorNotEquals operator = "!="
-	OperatorContains  operator = "contains"
-	OperatorStarts    operator = "starts"
-	OperatorIn        operator = "in"
-	OperatorNotIn     operator = "notIn"
-	OperatorGt        operator = ">"
-	OperatorGte       operator = ">="
-	OperatorLt        operator = "<"
-	OperatorLte       operator = "<="
+	OperatorEquals    Operator = "="
+	OperatorNotEquals Operator = "!="
+	OperatorContains  Operator = "contains"
+	OperatorStarts    Operator = "starts"
+	OperatorIn        Operator = "in"
+	OperatorNotIn     Operator = "notIn"
+	OperatorGt        Operator = ">"
+	OperatorGte       Operator = ">="
+	OperatorLt        Operator = "<"
+	OperatorLte       Operator = "<="
 )
 
+// FullSearch is a special function to search by many fields at once using OR logical Operator
+func (q *Query) FullSearch(value any, fields ...string) *Query {
+	if obj.ToString("", value) == "" {
+		return q
+	}
+	if q.OrCondition == nil {
+		q.OrCondition = map[int][]Condition{}
+	}
+	idx := len(q.OrCondition)
+	for _, field := range fields {
+		q.hasFullSearch = true
+		q.OrCondition[idx] = append(q.OrCondition[idx], Condition{field, OperatorStarts, value, "OR"})
+	}
+	return q
+}
+
+func (q *Query) HasFullSearch() bool {
+	return q.hasFullSearch
+}
+
 func (q *Query) Eq(field string, value interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorEquals, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorEquals, value, ""})
 	return q
 }
 
 func (q *Query) Ne(field string, value interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorNotEquals, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorNotEquals, value, ""})
 	return q
 }
 
@@ -74,12 +95,12 @@ func (q *Query) AddWhere(where string) *Query {
 }
 
 func (q *Query) Contains(field, value string) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorContains, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorContains, value, ""})
 	return q
 }
 
 func (q *Query) StartsWith(field, value string) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorStarts, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorStarts, value, ""})
 	return q
 }
 
@@ -94,40 +115,43 @@ func (q *Query) StartsOrContain(field, value string) *Query {
 	return q
 }
 
-func (q *Query) In(field string, value ...interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorIn, value})
+func (q *Query) In(field string, value ...string) *Query {
+	if len(value) == 0 {
+		return q
+	}
+	q.Conditions = append(q.Conditions, Condition{field, OperatorIn, value, ""})
 	return q
 }
 
 func (q *Query) NotIn(field string, value ...interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorNotIn, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorNotIn, value, ""})
 	return q
 }
 
 func (q *Query) InString(field string, value ...string) *Query {
 	if len(value) > 0 {
-		q.Conditions = append(q.Conditions, condition{field, OperatorIn, value})
+		q.Conditions = append(q.Conditions, Condition{field, OperatorIn, value, ""})
 	}
 	return q
 }
 
 func (q *Query) Gt(field string, value interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorGt, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorGt, value, ""})
 	return q
 }
 
 func (q *Query) Gte(field string, value interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorGte, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorGte, value, ""})
 	return q
 }
 
 func (q *Query) Lt(field string, value interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorLt, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorLt, value, ""})
 	return q
 }
 
 func (q *Query) Lte(field string, value interface{}) *Query {
-	q.Conditions = append(q.Conditions, condition{field, OperatorLte, value})
+	q.Conditions = append(q.Conditions, Condition{field, OperatorLte, value, ""})
 	return q
 }
 
