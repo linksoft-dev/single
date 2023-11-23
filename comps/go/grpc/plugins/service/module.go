@@ -63,16 +63,36 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 	if err != nil {
 		log.WithError(err).Warnf("error when try to check if message has Crud flag")
 	}
+	// this means that crud option is not set
 	if v == false {
 		return
 	}
 
-	firestoreFilename := m.Context.OutputPath(f).SetExt(".server.go").String()
+	fileName := m.Context.OutputPath(f).SetExt(".service.go").String()
+	type fieldSettings struct {
+		Field    pgs.Field
+		Settings pb.Field
+	}
+
 	data := struct {
 		MessageName string
+		Fields      []fieldSettings
 	}{
 		MessageName: msg.Name().String(),
 	}
+	// check all fields settings
+	for _, field := range msg.Fields() {
+		// perform the parse into Field object, this is the way to check the options present in each proto field about Field settings
+		fs := pb.Field{}
+		ok, err := field.Extension(pb.E_Field, &fs)
+		if err != nil {
+			log.WithError(err).Warnf("error when try to check if proto field has field settings")
+		}
+		if ok {
+			data.Fields = append(data.Fields, fieldSettings{Field: field, Settings: fs})
+		}
+	}
+
 	templateName := "template_server.go.tmpl"
 	r, err := tpl.RenderTemplate(templates, templateName, data, nil)
 	if err != nil {
@@ -80,5 +100,5 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 		return
 	}
 
-	m.AddGeneratorFile(firestoreFilename, r)
+	m.AddGeneratorFile(fileName, r)
 }

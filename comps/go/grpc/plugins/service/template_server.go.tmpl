@@ -6,21 +6,43 @@ package pb
 
 import (
 	"context"
-	"github.com/linksoft-dev/single/comps/go/db"
+	"github.com/linksoft-dev/single/comps/go/dao"
+	"github.com/linksoft-dev/single/comps/go/validation"
+	"strings"
 )
 
 type {{.MessageName}}Server struct {
 	Unimplemented{{.MessageName}}ServiceServer
-	db db.Crud
+	dao dao.Crud[{{.MessageName}}]
 }
 
-func New{{.MessageName}}Server(db db.Crud) {{.MessageName}}Server {
-	return {{.MessageName}}Server{db: db}
+func New{{.MessageName}}Server(dao dao.Crud[{{.MessageName}}]) {{.MessageName}}Server {
+	return {{.MessageName}}Server{dao: dao}
 }
 
 func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.MessageName}}Request) (*Create{{.MessageName}}Response, error) {
-	if err := s.db.Create(req.{{.MessageName}}); err != nil {
+    req.{{.MessageName}}.inputParse()
+	if err := req.{{.MessageName}}.Validate(ctx); err!=nil {
 		return nil, err
 	}
-	return &Create{{.MessageName}}Response{}, nil
+	r, err := s.dao.Create(req.{{.MessageName}})
+	if err != nil {
+		return nil, err
+	}
+	r.formatOutput()
+	return &Create{ {{.MessageName}}Response{{.MessageName}}: &r}, nil
+}
+
+// GetId this method implements the interface dao.Crud
+func (c {{.MessageName}}) GetId()string {
+	return c.Name
+}
+
+// inputParse perform some transformation/normalization over the object
+func (c *{{.MessageName}}) inputParse() {
+{{ range $idx, $field := .Fields }}
+  {{- if $field.Settings.GetUpperCase }}
+    c.{{ $field.Field.Name }} = strings.ToUpper(c. {{ $field.Field.Name }})
+  {{- end }}
+{{- end }}
 }

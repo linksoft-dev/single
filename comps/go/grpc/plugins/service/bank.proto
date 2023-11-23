@@ -78,14 +78,22 @@ message FindBancoResponse {
 }
 
 message Banco {
-  option (kissproject.single.service.crud) = true;
-  string nome = 1;
+  option (service.crud) = true;
+  string nome = 1
+  [
+    (service.field).upperCase = true,
+    (service.field).trimSpace = true
+  ];
   string icone = 2;
   repeated Investimento investimentos = 3;
 }
 
 message Investimento {
-  string nome = 1;
+  string nome = 1
+  [
+    (service.field).upperCase = true,
+    (service.field).trimSpace = true
+  ];
   float percentual_cdi = 2;
   TipoProduto tipo_produto = 3;
   TipoInvestimento tipo_investimento = 4;

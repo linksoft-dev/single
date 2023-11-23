@@ -3,9 +3,17 @@ syntax = "proto3";
 package service;
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/linksoft-dev/single/comps/go/grpc/plugins/service";
+option go_package = "github.com/linksoft-dev/single/comps/go/grpc/plugins/service/pb";
 
 extend google.protobuf.MessageOptions {
   bool crud = 1000;
 }
 
+extend google.protobuf.FieldOptions {
+  Field field = 1001;
+}
+
+message Field {
+  bool upperCase = 1;
+  bool trimSpace = 2;
+}
