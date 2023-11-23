@@ -74,6 +74,24 @@ func ReadBody(body io.ReadCloser) []byte {
 	return b
 }
 
+// ParseResponse ParseRequest read a body of response and try to Unmarshal into a struct passed by parameter
+func ParseResponse(response *http.Response, dest any) (err error) {
+	if dest != nil && response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated {
+		err = ParseBody(response.Body, dest)
+	}
+	return
+}
+
+func ParseBody(body io.ReadCloser, dest any) error {
+	b := ReadBody(body)
+	err := json.Unmarshal(b, dest)
+	if err != nil {
+		logrus.WithError(err).Error("error while trying to unmarshal response into struct")
+		return err
+	}
+	return nil
+}
+
 // Request realiza uma request e joga o resultado da request para o parametro `dest`
 func (r *Request) Request(method, urlAddress string, headers map[string]string, params,
 	dest interface{}) (resp *Response, err error) {
@@ -136,16 +154,7 @@ func (r *Request) Request(method, urlAddress string, headers map[string]string, 
 	defer resp.HttpResponse.Body.Close()
 	resp.ResponseBody = body
 
-	// grava a resposta na variavel dest
-	if dest != nil && resp.HttpResponse.StatusCode == http.StatusOK || resp.HttpResponse.StatusCode == http.StatusCreated {
-		err = json.Unmarshal(body, dest)
-		if err != nil {
-			logrus.WithFields(map[string]interface{}{
-				"Error": err,
-			}).Error("Erro ao fazer unmarshal de json da request")
-			return
-		}
-	}
+	err = ParseResponse(resp.HttpResponse, dest)
 
 	return
 }

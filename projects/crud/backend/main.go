@@ -6,6 +6,7 @@ import (
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest"
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest/chi"
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest/fiber"
+	"github.com/linksoft-dev/single/crud/apps/app"
 	"github.com/linksoft-dev/single/crud/apps/todo"
 )
 
@@ -16,6 +17,7 @@ func main() {
 		rest.AppInterface
 	}
 	apps := []allApps{
+		app.App,
 		todo.App,
 	}
 

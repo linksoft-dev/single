@@ -97,6 +97,11 @@ func (d *Database[T]) Save(insert bool, objs ...T) (list []T, err error) {
 		if err2 != nil {
 			return list, err2
 		}
+		if record.GetId() == "" {
+			err = fmt.Errorf("field id cannot be blank")
+			return nil, err
+		}
+
 		docStr := string(doc)
 		docStr = strings.ReplaceAll(docStr, "'", "''")
 		if insert {
@@ -119,11 +124,11 @@ func (d *Database[T]) Save(insert bool, objs ...T) (list []T, err error) {
 		if count == step || idx == length-1 {
 			count = 0
 			result := d.db.Exec(sb.String())
-			if err2 != nil {
-				return
-			}
-			if result.Error != nil {
-				return
+			if d.createTableIfDoesntExists(result.Error) {
+				result = d.db.Exec(sb.String())
+				if result != nil && result.Error != nil {
+					return nil, result.Error
+				}
 			}
 			sb.Reset()
 		}
