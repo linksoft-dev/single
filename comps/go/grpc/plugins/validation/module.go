@@ -67,7 +67,7 @@ func (m *reportModule) generateValidation(msg pgs.Message, f pgs.File) {
 		return
 	}
 
-	firestoreFilename := m.Context.OutputPath(f).SetExt(".server.go").String()
+	firestoreFilename := m.Context.OutputPath(f).SetExt(".validation.go").String()
 	data := struct {
 		MessageName string
 	}{
