@@ -1,6 +1,10 @@
 package fiber
 
 import (
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -11,14 +15,17 @@ import (
 	"github.com/linksoft-dev/single/comps/go/api"
 	"github.com/linksoft-dev/single/comps/go/api/adapters/rest"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strings"
 )
 
 var fiberApp *fiber.App
 
-func New(port, prefix string, config fiber.Config) *Adapter {
-	return &Adapter{port: port, prefix: prefix, config: config}
+func New(port, prefix string, config *fiber.Config) *Adapter {
+	if config == nil {
+		config = &fiber.Config{
+			BodyLimit: 40 * 1024 * 1024, // 40 mb  response limit as default
+		}
+	}
+	return &Adapter{port: port, prefix: prefix, config: *config}
 }
 
 // Adapter struct to save apps that implement grpc adapters and set port that grpc server should run
@@ -33,34 +40,47 @@ func (g *Adapter) AddApp(app rest.AppInterface) {
 	g.apps = append(g.apps, app)
 }
 
-const apiPrefix = "/api"
+var routes map[string]http.HandlerFunc
 
 func (g *Adapter) Run() error {
-
+	routes = map[string]http.HandlerFunc{}
 	if fiberApp == nil {
 		fiberApp = fiber.New(g.config)
 
-		apiGroup := fiberApp.Group(apiPrefix)
+		apiGroup := fiberApp.Group(g.prefix)
 		staticGroup := fiberApp.Group("/")
 
 		fiberAddInternalMiddlewares(apiGroup)
-		fiberSpaMiddleware(staticGroup)
+		g.fiberSpaMiddleware(staticGroup)
 
 		for _, app := range g.apps {
 			appMiddleware := app.GetMiddlewares()
-			if appMiddleware != nil {
-				for _, value := range appMiddleware {
-					if value != nil {
-						apiGroup.Use(adaptor.HTTPMiddleware(value))
-					}
+			for _, value := range appMiddleware {
+				if value != nil {
+					apiGroup.Use(adaptor.HTTPMiddleware(value))
 				}
 			}
 
 			restRouters := app.GetRouters()
 			if restRouters != nil {
 				for _, route := range *restRouters {
+					route.Path = convertBraceToColon(route.Path)
 					apiGroup.Add(route.Method, route.Path, adaptor.HTTPHandlerFunc(route.Handler))
-					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": "/api" + route.Path})
+					//routes[route.Path] = route.Handler
+					//
+					//apiGroup.Add(route.Method, route.Path, func(c *fiber.Ctx) error {
+					//	r := getRequestFromFiberContext(c)
+					//	res := NewCustomResponseWriter()
+					//	path := strings.ReplaceAll(c.Route().Path, g.prefix, "")
+					//	handlerFunc := routes[path]
+					//	if handlerFunc != nil {
+					//		handlerFunc(res, r)
+					//	}
+					//	c.Write(res.body)
+					//	return c.SendString(string(res.body))
+					//})
+
+					log.Infof("%s - Adding route %v", g.GetName(), map[string]interface{}{"Route": g.prefix + route.Path})
 				}
 			}
 
@@ -100,12 +120,59 @@ func (g *Adapter) GetName() string {
 	return "Fiber WebServer"
 }
 
+func convertBraceToColon(path string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(path, "{", ":"), "}", "")
+}
+
 func (g Adapter) GetApps() []api.App {
 	apps := []api.App{}
 	for _, app := range g.apps {
 		apps = append(apps, app)
 	}
 	return apps
+}
+
+// getRequestFromFiberContext this function return a pointer of http.Request copying URL parameters
+// given fiber context
+func getRequestFromFiberContext(c *fiber.Ctx) (r *http.Request) {
+	r, _ = adaptor.ConvertRequest(c, true)
+	params := c.AllParams()
+	if len(params) == 0 {
+		return
+	}
+	// copy URL parameters
+	queryParams := url.Values{}
+	for key, value := range params {
+		queryParams.Add(key, value)
+	}
+	r.URL.RawQuery = queryParams.Encode()
+	return
+}
+
+type CustomResponseWriter struct {
+	body       []byte
+	statusCode int
+	header     http.Header
+}
+
+func NewCustomResponseWriter() *CustomResponseWriter {
+	return &CustomResponseWriter{
+		header: http.Header{},
+	}
+}
+
+func (w *CustomResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *CustomResponseWriter) Write(b []byte) (int, error) {
+	w.body = b
+	// implement it as per your requirement
+	return 0, nil
+}
+
+func (w *CustomResponseWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
 }
 
 // fiberGraphQLHandler cria o handler para processar requests graphQl
@@ -158,7 +225,7 @@ func fiberAddInternalMiddlewares(apiGroup fiber.Router) {
 
 }
 
-func fiberSpaMiddleware(group fiber.Router) {
+func (g Adapter) fiberSpaMiddleware(group fiber.Router) {
 
 	group.Use(filesystem.New(filesystem.Config{
 		Root:         http.Dir("./web"),
@@ -167,7 +234,7 @@ func fiberSpaMiddleware(group fiber.Router) {
 		NotFoundFile: "index.html",
 		MaxAge:       3600,
 		Next: func(c *fiber.Ctx) bool {
-			if strings.Contains(c.Request().URI().String(), apiPrefix) {
+			if strings.Contains(c.Request().URI().String(), g.prefix) {
 				return true
 			}
 			return false
