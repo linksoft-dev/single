@@ -13,7 +13,16 @@ extend google.protobuf.FieldOptions {
   Field field = 1001;
 }
 
+enum Boolean {
+  UNSPECIFIED = 0;
+  YES = 1;
+  NO = 2;
+}
+
 message Field {
-  bool upperCase = 1;
-  bool trimSpace = 2;
+  Boolean upperNoSpaceNoAccent = 1;
+  Boolean upperCase = 2;
+  Boolean trimSpace = 3;
+  Boolean removeAccent = 4;
+
 }

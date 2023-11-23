@@ -14,6 +14,8 @@ generate_service_pb:
       --go_opt=paths=source_relative \
       service.proto
 
+dev: debug generate_service_pb
+
 test_plugin_generator:
 	 protoc \
       --plugin=protoc-gen-service=/home/dev/projects/single/comps/go/grpc-plugins/service/protoc-gen-service \

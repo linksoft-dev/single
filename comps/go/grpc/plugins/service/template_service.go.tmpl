@@ -7,8 +7,9 @@ package pb
 import (
 	"context"
 	"github.com/linksoft-dev/single/comps/go/dao"
-	"github.com/linksoft-dev/single/comps/go/validation"
+	"github.com/linksoft-dev/single/comps/go/str"
 	"strings"
+	"fmt"
 )
 
 type {{.MessageName}}Server struct {
@@ -21,16 +22,20 @@ func New{{.MessageName}}Server(dao dao.Crud[{{.MessageName}}]) {{.MessageName}}S
 }
 
 func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.MessageName}}Request) (*Create{{.MessageName}}Response, error) {
+	if req.{{.MessageName}} == nil {
+		return nil, fmt.Errorf("required parameter {{.MessageName}} not passed by parameter")
+	}
+
     req.{{.MessageName}}.inputParse()
 	if err := req.{{.MessageName}}.Validate(ctx); err!=nil {
 		return nil, err
 	}
-	r, err := s.dao.Create(req.{{.MessageName}})
+	r, err := s.dao.Create(*req.{{.MessageName}})
 	if err != nil {
 		return nil, err
 	}
 	r.formatOutput()
-	return &Create{ {{.MessageName}}Response{{.MessageName}}: &r}, nil
+	return &Create{{.MessageName}}Response{ {{.MessageName}}: &r}, nil
 }
 
 // GetId this method implements the interface dao.Crud
@@ -41,8 +46,19 @@ func (c {{.MessageName}}) GetId()string {
 // inputParse perform some transformation/normalization over the object
 func (c *{{.MessageName}}) inputParse() {
 {{ range $idx, $field := .Fields }}
-  {{- if $field.Settings.GetUpperCase }}
-    c.{{ $field.Field.Name }} = strings.ToUpper(c. {{ $field.Field.Name }})
-  {{- end }}
+  {{ $fieldName := toCamel $field.Field.Name.String }}
+  {{ if or (eq $field.Settings.GetUpperCase.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
+    c.{{ $fieldName }} = strings.ToUpper(c.{{ $fieldName }})
+  {{ end }}
+  {{ if or (eq $field.Settings.GetTrimSpace.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
+    c.{{ $fieldName  }} = str.RemoveExtraSpaces(c.{{ $fieldName  }})
+  {{ end }}
+  {{ if or (eq $field.Settings.GetRemoveAccent.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
+    c.{{ $fieldName }} = str.RemoveAccent(c.{{ $fieldName }})
+  {{ end }}
 {{- end }}
+}
+
+func (c *{{.MessageName}}) formatOutput() {
+
 }
