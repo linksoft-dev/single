@@ -27,9 +27,9 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 	}
 
     req.{{.MessageName}}.inputParse()
-	if err := req.{{.MessageName}}.Validate(ctx); err!=nil {
-		return nil, err
-	}
+	if err := Validate{{.MessageName}}(ctx, req.{{.MessageName}}); err != nil {
+    		return nil, err
+  	}
 	r, err := s.dao.Create(*req.{{.MessageName}})
 	if err != nil {
 		return nil, err
@@ -37,6 +37,54 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 	r.formatOutput()
 	return &Create{{.MessageName}}Response{ {{.MessageName}}: &r}, nil
 }
+
+func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.MessageName}}Request) (*Update{{.MessageName}}Response, error) {
+	if req.{{.MessageName}} == nil {
+		return nil, fmt.Errorf("required parameter {{.MessageName}} not passed by parameter")
+	}
+
+	req.{{.MessageName}}.inputParse()
+	var fieldMask fieldmaskpb.FieldMask
+	if req.UpdateMask == nil {
+		fieldMask = fieldmaskpb.FieldMask{}
+	} else {
+		fieldMask = *req.UpdateMask
+	}
+	if err := Validate{{.MessageName}}(ctx, req.{{.MessageName}}); err != nil {
+    	return nil, err
+   	}
+	err := s.dao.Update(*req.{{.MessageName}}, fieldMask.Paths)
+	if err != nil {
+		return nil, err
+	}
+	req.{{.MessageName}}.formatOutput()
+	return &Update{{.MessageName}}Response{ {{.MessageName}}: req.{{.MessageName}} }, nil
+}
+
+func (s *{{.MessageName}}Server) Delete(ctx context.Context, req *Delete{{.MessageName}}Request) (*Delete{{.MessageName}}Response, error) {
+	if req.Id == "" {
+		return nil, fmt.Errorf("id is required for delete process")
+	}
+	r, err := s.dao.Get(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.dao.Delete(r)
+	if err != nil {
+		return nil, err
+	}
+	return &Delete{{.MessageName}}Response{}, nil
+}
+
+func (s *{{.MessageName}}Server) Find(ctx context.Context, req *Find{{.MessageName}}Request) (*Find{{.MessageName}}Response, error) {
+	list, err := s.dao.Find(ctx, req.Filter)
+	if err != nil {
+		return nil, err
+	}
+	return &Find{{.MessageName}}Response{ {{.MessageName}}s: list}, nil
+}
+
 
 // GetId this method implements the interface dao.Crud
 func (c {{.MessageName}}) GetId()string {
