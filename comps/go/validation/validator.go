@@ -94,16 +94,27 @@ func New() *Validation {
 }
 
 func NewWithContext(ctx context.Context) *Validation {
-	return &Validation{}
+	v := &Validation{
+		language: language.BrazilianPortuguese,
+	}
+	if lang, ok := ctx.Value("lang").(string); ok {
+		switch lang {
+		case "us_en":
+			v.language = language.English
+		default:
+			v.language = language.BrazilianPortuguese
+		}
+	}
+	return v
 }
 
 // ValidateI18nContext validate and try to get the language from the context
-func (v *Validation) ValidateI18nContext(ctx context.Context) error {
-	if _, ok := ctx.Value("lang").(string); ok {
-		//bundle.
-		language.BrazilianPortuguese.String()
+func (v *Validation) Validate() (err error) {
+
+	errs := v.GetErrors()
+	if len(errs) > 0 {
+
 	}
-	v.Validated()
 	return nil
 }
 
