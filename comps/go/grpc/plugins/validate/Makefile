@@ -10,9 +10,9 @@ generate_validate_pb:
 	 protoc \
       --go_out=./pb \
       --proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos \
-      --proto_path=/home/dev/projects/single/comps/go/grpc-plugins/service \
+      --proto_path=/home/dev/projects/single/comps/go/grpc/plugins/validate \
       --go_opt=paths=source_relative \
-      service.proto
+      validate.proto
 
 test_plugin_generator:
 	 protoc \

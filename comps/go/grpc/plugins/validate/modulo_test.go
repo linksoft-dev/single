@@ -1,4 +1,4 @@
-package genservice
+package validate
 
 import (
 	"bytes"
