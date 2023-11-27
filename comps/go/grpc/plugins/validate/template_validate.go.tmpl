@@ -18,7 +18,11 @@ func Validate{{.MessageName}}(ctx context.Context, m *{{.MessageName}}) error {
 	v := validation.NewWithContext(ctx)
 	{{ range $idx, $field := .Fields }}
 	  {{ $fieldName := toCamel $field.Field.Name.String }}
-	   {{ if or (eq $field.Settings.GetUpperCase.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
+
+	   {{ if eq $field.Type "string" }}
+	      {{ if eq $field.Type "string" }}
+	         v.IsByteLength({{ $fieldName }}, m.{{ $fieldName }}, {{ $field.StringRules.MinLen }}, {{ $field.StringRules.MaxLen }})
+	      {{ end }}
           c.{{ $fieldName }} = strings.ToUpper(c.{{ $fieldName }})
         {{ end }}
 	    v.IsByteLength("nome", m.Nome, 1, 10)

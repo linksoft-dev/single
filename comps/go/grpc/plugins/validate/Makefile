@@ -2,7 +2,7 @@ debug:
 	 protoc \
 	  --plugin=protoc-gen-debug=/home/dev/go/bin/protoc-gen-debug \
 	  --proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos \
-	  --proto_path=/home/dev/projects/single/comps/go/grpc-plugins/service \
+	  --proto_path=/home/dev/projects/single/comps/go/grpc/plugins/validate \
 	  --debug_out=".:." \
 	  *.proto
 
