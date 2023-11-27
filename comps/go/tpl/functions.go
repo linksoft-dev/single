@@ -89,13 +89,16 @@ func GetDefaultTemplateFunctions() template.FuncMap {
 func RenderTemplate(templates embed.FS, templateName string, data interface{}, functions *template.FuncMap) (r string, err error) {
 	dir := filepath.Dir(templateName)
 	dir = strings.ReplaceAll(dir, "\\", "/")
+	if functions != nil {
+		for key, value := range *functions {
+			renderTemplateFuncMap[key] = value
+		}
+	}
 	tpl, err := template.New("templates").Funcs(renderTemplateFuncMap).ParseFS(templates, fmt.Sprintf("%s/*", dir))
 	if err != nil {
 		return
 	}
-	if functions != nil {
-		_ = tpl.Funcs(*functions)
-	}
+
 	tpl, err = tpl.ParseFS(templates, templateName)
 	if err != nil {
 		return

@@ -3,7 +3,7 @@ syntax = "proto3";
 package investimentos;
 
 import "google/api/annotations.proto";
-import "service.proto";
+import "validate.proto";
 
 option go_package = "investbr/apps/simulador/pb";
 
@@ -64,7 +64,10 @@ message FindAccountResponse {
 }
 
 message Account {
-  option (kissproject.single.service.crud) = true;
-  string name = 1;
+  string name = 1
+  [
+    (validate.rules).string.min_len = 3,
+    (validate.rules).string.max_len = 80
+  ];
 
 }
