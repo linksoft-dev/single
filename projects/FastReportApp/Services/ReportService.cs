@@ -15,7 +15,7 @@ public class ReportService : report.reportBase
     {
         return Task.FromResult(new GetReportResponse
         {
-           Data = "" // report content
+        //    Data = "" // report content
         });
     }
 }
