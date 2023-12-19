@@ -2,19 +2,31 @@
 using System;
 using System.Threading.Tasks;
 using Grpc.Core;
-    
-Console.WriteLine("Server started on port " );
-var builder = WebApplication.CreateBuilder(args);
+using Server.Services;
 
-// Add services to the container.
-builder.Services.AddGrpc();
+namespace server
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
 
-var app = builder.Build();
+            Console.WriteLine("Server started on port ");
+            var builder = WebApplication.CreateBuilder(args);
 
-// Configure the HTTP request pipeline.
-app.MapGrpcService<ReportService>();
-app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+            // Add services to the container.
+            builder.Services.AddGrpc();
 
-app.Run();
+            var app = builder.Build();
 
+            // Configure the HTTP request pipeline.
+            app.MapGrpcService<ReportService>();
+            app.MapGet("/", () =>
+                "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909"
+            );
+
+            app.Run();
+        }
+    }
+}
 

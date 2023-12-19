@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "FastReportApp";
+option go_package = "clients/pb";
+
+package report;
+
+
+service report {
+  rpc GetReport (GetReportRequest) returns (GetReportResponse);
+}
+
+message GetReportRequest {
+  string frx_content = 1;
+  string frx_data = 2;
+  string output_filename = 3;
+}
+
+message GetReportResponse {
+  bytes data = 1;
+}
