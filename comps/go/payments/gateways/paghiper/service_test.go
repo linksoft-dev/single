@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	InvalidPaghiperApikey        = "apk_48040241-OqCWOKczcjutZaFRSfTlVBDpHFXpkdzz"
-	InvalidPaghiperToken         = "48O1QPJ276B2DYCAKGAYZVPN6IS04C68LUABKUES0PPP"
-	InvalidPaghiperTransactionId = "P1E6C30PU7TOMCY1"
-	ValidPaghiperApikey          = "apk_40033556-cDgQfepiRlIDWDtkinocyHZXYYuZurZX"
-	ValidPaghiperToken           = "48O1QPJ276B2DYCAKGAYZVPN6IS04C68LUABKUES0PUD"
-	ValidPaghiperTransactionId   = "P1E6C30PU7TOMCYF"
+	InvalidPaghiperApikey        = ""
+	InvalidPaghiperToken         = ""
+	InvalidPaghiperTransactionId = ""
+	ValidPaghiperApikey          = ""
+	ValidPaghiperToken           = ""
+	ValidPaghiperTransactionId   = ""
 )
 
 func TestPagHiperCreate(t *testing.T) {
@@ -147,7 +147,7 @@ func TestPagHiperCancel(t *testing.T) {
 	phApiKey := ValidPaghiperApikey
 
 	//testing using a invalid token and invalid transaction Id
-	phToken = "cfc439681009dc15f111b46ad3fd137d"
+	phToken = ""
 
 	phTransactionId = "BPV661O7AVLORCN5"
 
