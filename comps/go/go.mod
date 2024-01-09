@@ -21,6 +21,7 @@ require (
 	github.com/jackc/pgconn v1.14.1
 	github.com/lib/pq v1.10.9
 	github.com/lyft/protoc-gen-star v0.6.2
+	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/osamingo/checkdigit v1.0.1
 	github.com/rodrigorodriguescosta/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/segmentio/ksuid v1.0.4

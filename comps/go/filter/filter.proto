@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option go_package = "single/filter/pb";
+
+message Filter {
+  string main_filter = 1;
+  repeated string ids = 2;
+  repeated condition conditions = 3;
+}
+
+message condition {
+  string field_name = 1;
+  operator operator = 2;
+  string value = 3;
+  bool not = 4;
+}
+
+message Sorting {
+  string field_name = 1;
+  direction direction = 2;
+}
+
+enum direction {
+  ASC = 0;
+  DESC = 1;
+}
+
+enum operator {
+  Equals = 0;
+  Contains = 1;
+  Starts = 2;
+  In = 3;
+  Gt = 4;
+  Gte = 5;
+  Lt = 6;
+  Lte = 7;
+}
