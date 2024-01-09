@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/str"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"strings"
 	"fmt"
 )
@@ -26,15 +27,15 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 		return nil, fmt.Errorf("required parameter {{.MessageName}} not passed by parameter")
 	}
 
-    req.{{.MessageName}}.inputParse()
+    v := InputParse{{.MessageName}}(*req.{{.MessageName}})
 	if err := Validate{{.MessageName}}(ctx, req.{{.MessageName}}); err != nil {
     		return nil, err
   	}
-	r, err := s.dao.Create(*req.{{.MessageName}})
+	r, err := s.dao.Create(v)
 	if err != nil {
 		return nil, err
 	}
-	r.formatOutput()
+	v = FormatOutput{{.MessageName}}(v)
 	return &Create{{.MessageName}}Response{ {{.MessageName}}: &r}, nil
 }
 
@@ -43,21 +44,21 @@ func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.Messa
 		return nil, fmt.Errorf("required parameter {{.MessageName}} not passed by parameter")
 	}
 
-	req.{{.MessageName}}.inputParse()
+	v := InputParse{{.MessageName}}(*req.{{.MessageName}})
 	var fieldMask fieldmaskpb.FieldMask
 	if req.UpdateMask == nil {
 		fieldMask = fieldmaskpb.FieldMask{}
 	} else {
 		fieldMask = *req.UpdateMask
 	}
-	if err := Validate{{.MessageName}}(ctx, req.{{.MessageName}}); err != nil {
+	if err := Validate{{.MessageName}}(ctx, v); err != nil {
     	return nil, err
    	}
-	err := s.dao.Update(*req.{{.MessageName}}, fieldMask.Paths)
+	err := s.dao.Update(v, fieldMask.Paths)
 	if err != nil {
 		return nil, err
 	}
-	req.{{.MessageName}}.formatOutput()
+	v = FormatOutput{{.MessageName}}(v)
 	return &Update{{.MessageName}}Response{ {{.MessageName}}: req.{{.MessageName}} }, nil
 }
 
@@ -91,22 +92,23 @@ func (c {{.MessageName}}) GetId()string {
 	return c.Name
 }
 
-// inputParse perform some transformation/normalization over the object
-func (c *{{.MessageName}}) inputParse() {
+// inputParse{{.MessageName}} perform some transformation/normalization over the object for type {{.MessageName}}
+func InputParse{{.MessageName}}(v {{.MessageName}}) {{.MessageName}} {
 {{ range $idx, $field := .Fields }}
   {{ $fieldName := toCamel $field.Field.Name.String }}
   {{ if or (eq $field.Settings.GetUpperCase.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
-    c.{{ $fieldName }} = strings.ToUpper(c.{{ $fieldName }})
+    v.{{ $fieldName }} = strings.ToUpper(v.{{ $fieldName }})
   {{ end }}
   {{ if or (eq $field.Settings.GetTrimSpace.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
-    c.{{ $fieldName  }} = str.RemoveExtraSpaces(c.{{ $fieldName  }})
+    v.{{ $fieldName  }} = str.RemoveExtraSpaces(v.{{ $fieldName  }})
   {{ end }}
   {{ if or (eq $field.Settings.GetRemoveAccent.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
-    c.{{ $fieldName }} = str.RemoveAccent(c.{{ $fieldName }})
+    v.{{ $fieldName }} = str.RemoveAccent(v.{{ $fieldName }})
   {{ end }}
 {{- end }}
+return v
 }
 
-func (c *{{.MessageName}}) formatOutput() {
-
+func FormatOutput{{.MessageName}}(v {{.MessageName}}) {{.MessageName}} {
+    return v
 }
