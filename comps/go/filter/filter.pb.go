@@ -131,6 +131,7 @@ func (Operator) EnumDescriptor() ([]byte, []int) {
 	return file_filter_proto_rawDescGZIP(), []int{1}
 }
 
+// generic filter
 type Filter struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

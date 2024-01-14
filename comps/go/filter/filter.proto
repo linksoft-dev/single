@@ -3,6 +3,7 @@ import "google/api/any.proto";
 
 option go_package = "single/filter";
 
+// generic filter
 message Filter {
   string main_filter = 1;
   repeated string ids = 2;
