@@ -28,7 +28,7 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 	}
 
     v := InputParse{{.MessageName}}(*req.{{.MessageName}})
-	if err := Validate{{.MessageName}}(ctx, req.{{.MessageName}}); err != nil {
+	if err := Validate{{.MessageName}}(ctx, *req.{{.MessageName}}); err != nil {
     		return nil, err
   	}
 	r, err := s.dao.Create(v)
@@ -83,7 +83,7 @@ func (s *{{.MessageName}}Server) Find(ctx context.Context, req *Find{{.MessageNa
 	if err != nil {
 		return nil, err
 	}
-	return &Find{{.MessageName}}Response{ {{.MessageName}}s: list}, nil
+	return &Find{{.MessageName}}Response{ {{.MessageName}}s: {{.MessageName}}ToPointOfSlice(list)}, nil
 }
 
 
@@ -112,3 +112,13 @@ return v
 func FormatOutput{{.MessageName}}(v {{.MessageName}}) {{.MessageName}} {
     return v
 }
+
+// {{.MessageName}}ToPointOfSlice convert slice of {{.MessageName}} into slice of {{.MessageName}} pointers
+func {{.MessageName}}ToPointOfSlice(slc []{{.MessageName}}) []*{{.MessageName}}{
+	resp := make([]*{{.MessageName}}, len(slc))
+	for i, c := range slc {
+		resp[i] = &c
+	}
+	return resp
+}
+
