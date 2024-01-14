@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/linksoft-dev/single/comps/go/grpc/plugins/validate/pb"
+	pb "github.com/linksoft-dev/single/comps/go/grpc/plugins/validate/pb"
+	"github.com/linksoft-dev/single/comps/go/str"
 	"github.com/linksoft-dev/single/comps/go/tpl"
 	pgs "github.com/lyft/protoc-gen-star"
 	pgsgo "github.com/lyft/protoc-gen-star/lang/go"
 	log "github.com/sirupsen/logrus"
+	"text/template"
 )
 
 //go:embed "template_validate.go.tmpl"
@@ -71,7 +73,7 @@ type message struct {
 // generateCrud generate the crud file if proto message has crud option set to true
 func (m *module) generateValidation(msg pgs.Message, f pgs.File) {
 
-	fileName := m.Context.OutputPath(f).SetExt(".validation.go").String()
+	fileName := m.Context.OutputPath(f).SetExt(".validate.go").String()
 	data := message{
 		MessageName: msg.Name().String(),
 	}
@@ -87,8 +89,12 @@ func (m *module) generateValidation(msg pgs.Message, f pgs.File) {
 		return
 	}
 	data.Fields[0].Field.Type()
-	templateName := "template_pb.go.tmpl"
-	r, err := tpl.RenderTemplate(templates, templateName, data, nil)
+	funcMap := &template.FuncMap{
+		"toCamel": str.ToCamel,
+	}
+	templateName := "template_validate.go.tmpl"
+
+	r, err := tpl.RenderTemplate(templates, templateName, data, funcMap)
 	if err != nil {
 		log.WithError(err).Fatalf("failed when render template %s", templateName)
 		return

@@ -10,10 +10,7 @@ import (
 	    "github.com/linksoft-dev/single/comps/go/validation"
 	)
 
-func Validate{{.MessageName}}(ctx context.Context, m *{{.MessageName}}) error {
-	if m == nil {
-		return nil
-	}
+func Validate{{.MessageName}}(ctx context.Context, m {{.MessageName}}) error {
 
 	v := validation.NewWithContext(ctx)
 	{{ range $idx, $field := .Fields }}
@@ -21,11 +18,9 @@ func Validate{{.MessageName}}(ctx context.Context, m *{{.MessageName}}) error {
 
 	   {{ if eq $field.Type "string" }}
 	      {{ if eq $field.Type "string" }}
-	         v.IsByteLength({{ $fieldName }}, m.{{ $fieldName }}, {{ $field.StringRules.MinLen }}, {{ $field.StringRules.MaxLen }})
+	         v.IsByteLength("{{ $fieldName }}", m.{{ $fieldName }}, {{ $field.StringRules.MinLen }}, {{ $field.StringRules.MaxLen }})
 	      {{ end }}
-          c.{{ $fieldName }} = strings.ToUpper(c.{{ $fieldName }})
         {{ end }}
-	    v.IsByteLength("nome", m.Nome, 1, 10)
 	{{ end }}
 
 	return v

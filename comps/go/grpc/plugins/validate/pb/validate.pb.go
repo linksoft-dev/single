@@ -4,7 +4,7 @@
 // 	protoc        v3.6.1
 // source: validate.proto
 
-package pb
+package validate
 
 import (
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
