@@ -113,7 +113,7 @@ func (v *Validation) Validate() (err error) {
 
 	errs := v.GetErrors()
 	if len(errs) > 0 {
-
+		return v
 	}
 	return nil
 }
