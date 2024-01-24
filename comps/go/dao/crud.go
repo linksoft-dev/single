@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"github.com/linksoft-dev/single/comps/go/filter"
 	"github.com/linksoft-dev/single/comps/go/types"
 	"time"
 )
@@ -32,11 +33,11 @@ type ObjI[T any] interface {
 type UpdateField []string
 
 type Crud[T ObjI[T]] interface {
-	Create(obj T) (T, error)
-	Update(obj T, fields UpdateField) error
-	Save(insert bool, obj ...T) ([]T, error)
-	Delete(T) error
-	DeleteHard(T) error
-	Find(ctx context.Context, filter Query) ([]T, error)
-	Get(id string) (T, error)
+	Create(ctx context.Context, obj T) (T, error)
+	Update(ctx context.Context, obj T, fields UpdateField) error
+	Save(ctx context.Context, insert bool, obj ...T) ([]T, error)
+	Delete(ctx context.Context, id string) error
+	DeleteHard(context.Context, T) error
+	List(ctx context.Context, filter filter.Filter) ([]T, error)
+	Get(ctx context.Context, id string) (T, error)
 }
