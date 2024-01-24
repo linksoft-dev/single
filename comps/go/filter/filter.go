@@ -92,6 +92,11 @@ func (q *Filter) From(tableName string) *Filter {
 	return q
 }
 
+func (q *Filter) AddCondition(condition Condition) *Filter {
+	q.Conditions = append(q.Conditions, &condition)
+	return q
+}
+
 func (q *Filter) OrderByAsc(field string) *Filter {
 	q.AddOrderBy(field, Direction_ASC)
 	return q
