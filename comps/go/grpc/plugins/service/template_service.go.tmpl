@@ -18,8 +18,8 @@ type {{.MessageName}}Server struct {
 	dao dao.Crud[{{.MessageName}}]
 }
 
-func New{{.MessageName}}Server(dao dao.Crud[{{.MessageName}}]) {{.MessageName}}Server {
-	return {{.MessageName}}Server{dao: dao}
+func New{{.MessageName}}Server(dao dao.Crud[{{.MessageName}}]) *{{.MessageName}}Server {
+	return &{{.MessageName}}Server{dao: dao}
 }
 
 func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.MessageName}}Request) (*Create{{.MessageName}}Response, error) {
@@ -31,7 +31,7 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 	if err := Validate{{.MessageName}}(ctx, *req.{{.MessageName}}); err != nil {
     		return nil, err
   	}
-	r, err := s.dao.Create(v)
+	r, err := s.dao.Create(ctx, v)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.Messa
 	if err := Validate{{.MessageName}}(ctx, v); err != nil {
     	return nil, err
    	}
-	err := s.dao.Update(v, fieldMask.Paths)
+	err := s.dao.Update(ctx, v, fieldMask.Paths)
 	if err != nil {
 		return nil, err
 	}
@@ -66,20 +66,19 @@ func (s *{{.MessageName}}Server) Delete(ctx context.Context, req *Delete{{.Messa
 	if req.Id == "" {
 		return nil, fmt.Errorf("id is required for delete process")
 	}
-	r, err := s.dao.Get(req.Id)
-	if err != nil {
-		return nil, err
-	}
 
-	err = s.dao.Delete(r)
+	err := s.dao.Delete(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	return &Delete{{.MessageName}}Response{}, nil
 }
 
-func (s *{{.MessageName}}Server) Find(ctx context.Context, req *Find{{.MessageName}}Request) (*Find{{.MessageName}}Response, error) {
-	list, err := s.dao.Find(ctx, req.Filter)
+func (s *{{.MessageName}}Server) List(ctx context.Context, req *Find{{.MessageName}}Request) (*Find{{.MessageName}}Response, error) {
+    if req == nil {
+       req = &Find{{.MessageName}}Request{}
+    }
+	list, err := s.dao.List(ctx, *req.Filter)
 	if err != nil {
 		return nil, err
 	}
