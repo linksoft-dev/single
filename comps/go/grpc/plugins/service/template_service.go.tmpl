@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/str"
+	"github.com/linksoft-dev/single/comps/go/validation"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"strings"
 	"fmt"
@@ -15,10 +16,11 @@ import (
 
 type {{.MessageName}}Server struct {
 	Unimplemented{{.MessageName}}ServiceServer
-	dao dao.Crud[{{.MessageName}}]
+	dao dao.Crud[*{{.MessageName}}]
+	OnValidate func (ctx context.Context, validator *validation.Validation)
 }
 
-func New{{.MessageName}}Server(dao dao.Crud[{{.MessageName}}]) *{{.MessageName}}Server {
+func New{{.MessageName}}Server(dao dao.Crud[*{{.MessageName}}]) *{{.MessageName}}Server {
 	return &{{.MessageName}}Server{dao: dao}
 }
 
@@ -27,16 +29,22 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 		return nil, fmt.Errorf("required parameter {{.MessageName}} not passed by parameter")
 	}
 
+    // validation
     v := InputParse{{.MessageName}}(*req.{{.MessageName}})
-	if err := Validate{{.MessageName}}(ctx, *req.{{.MessageName}}); err != nil {
-    		return nil, err
+	validator := Validate{{.MessageName}}(ctx, *req.{{.MessageName}})
+	if s.OnValidate !=nil {
+   		s.OnValidate(ctx, validator)
   	}
-	r, err := s.dao.Create(ctx, v)
+   	if validator.Validated() == false {
+   		return nil, validator
+   	}
+
+	r, err := s.dao.Create(ctx, &v)
 	if err != nil {
 		return nil, err
 	}
 	v = FormatOutput{{.MessageName}}(v)
-	return &Create{{.MessageName}}Response{ {{.MessageName}}: &r}, nil
+	return &Create{{.MessageName}}Response{ {{.MessageName}}: r}, nil
 }
 
 func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.MessageName}}Request) (*Update{{.MessageName}}Response, error) {
@@ -51,10 +59,17 @@ func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.Messa
 	} else {
 		fieldMask = *req.UpdateMask
 	}
-	if err := Validate{{.MessageName}}(ctx, v); err != nil {
-    	return nil, err
-   	}
-	err := s.dao.Update(ctx, v, fieldMask.Paths)
+
+	// validation
+    validator := Validate{{.MessageName}}(ctx, *req.{{.MessageName}})
+    if s.OnValidate !=nil {
+        s.OnValidate(ctx, validator)
+    }
+    if validator.Validated() == false {
+        return nil, validator
+    }
+
+	err := s.dao.Update(ctx, &v, fieldMask.Paths)
 	if err != nil {
 		return nil, err
 	}
@@ -74,21 +89,15 @@ func (s *{{.MessageName}}Server) Delete(ctx context.Context, req *Delete{{.Messa
 	return &Delete{{.MessageName}}Response{}, nil
 }
 
-func (s *{{.MessageName}}Server) List(ctx context.Context, req *Find{{.MessageName}}Request) (*Find{{.MessageName}}Response, error) {
+func (s *{{.MessageName}}Server) List(ctx context.Context, req *List{{.MessageName}}Request) (*List{{.MessageName}}Response, error) {
     if req == nil {
-       req = &Find{{.MessageName}}Request{}
+       req = &List{{.MessageName}}Request{}
     }
 	list, err := s.dao.List(ctx, *req.Filter)
 	if err != nil {
 		return nil, err
 	}
-	return &Find{{.MessageName}}Response{ {{.MessageName}}s: {{.MessageName}}ToPointOfSlice(list)}, nil
-}
-
-
-// GetId this method implements the interface dao.Crud
-func (c {{.MessageName}}) GetId()string {
-	return c.Name
+	return &List{{.MessageName}}Response{ {{.MessageName}}s: list}, nil
 }
 
 // inputParse{{.MessageName}} perform some transformation/normalization over the object for type {{.MessageName}}
