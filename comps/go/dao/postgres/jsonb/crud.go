@@ -151,10 +151,10 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 	return
 }
 
-func (d *Database[T]) Delete(ctx context.Context, obj T) error {
+func (d *Database[T]) Delete(ctx context.Context, id string) error {
 	r := getTenantInfoFromContext(ctx)
 	query := fmt.Sprintf("UPDATE %s set deleted_at=? where id=? and collection=?", r.tableName)
-	result := d.db.Exec(query, time.Now(), obj.GetId(), r.collectionName)
+	result := d.db.Exec(query, time.Now(), id, r.collectionName)
 	if result.Error != nil {
 		return result.Error
 	}
