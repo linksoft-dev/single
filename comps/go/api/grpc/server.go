@@ -35,6 +35,7 @@ func runWebServer() error {
 type Services interface {
 	Register(s *grpc.Server, httpServer *runtime.ServeMux) error
 	GetInterceptor() grpc.UnaryServerInterceptor
+	GetServiceName() string
 }
 
 func StartGrpcServer(port string, services ...Services) error {
@@ -60,11 +61,13 @@ func StartGrpcServer(port string, services ...Services) error {
 	)
 
 	// register all services
+	log.Infof("Registering %d services....", len(services))
 	for _, service := range services {
 		err := service.Register(grpcServer, mux)
 		if err != nil {
 			return err
 		}
+		log.Infof("registering Service '%s'", service.GetServiceName())
 	}
 
 	reflection.Register(grpcServer)
@@ -87,4 +90,12 @@ func StartGrpcServer(port string, services ...Services) error {
 	}
 	log.Infof("GRPC server listening on %s\n", port)
 	return nil
+}
+
+func GetClientConnection(serverAddr string) (*grpc.ClientConn, error) {
+	clientConnection, err := grpc.Dial(serverAddr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Falha ao conectar: %v", err)
+	}
+	return clientConnection, nil
 }
