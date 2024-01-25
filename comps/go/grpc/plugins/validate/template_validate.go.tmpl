@@ -10,7 +10,7 @@ import (
 	    "github.com/linksoft-dev/single/comps/go/validation"
 	)
 
-func Validate{{.MessageName}}(ctx context.Context, m {{.MessageName}}) error {
+func Validate{{.MessageName}}(ctx context.Context, m {{.MessageName}}) *validation.Validation {
 
 	v := validation.NewWithContext(ctx)
 	{{ range $idx, $field := .Fields }}
