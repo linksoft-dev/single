@@ -102,6 +102,11 @@ func (s *{{.MessageName}}Server) List(ctx context.Context, req *List{{.MessageNa
 
 // inputParse{{.MessageName}} perform some transformation/normalization over the object for type {{.MessageName}}
 func InputParse{{.MessageName}}(v {{.MessageName}}) {{.MessageName}} {
+
+    if v.Id == "" {
+		v.Id = "{{ toLower .MessageName}}/"+str.Uuid()
+	}
+
 {{ range $idx, $field := .Fields }}
   {{ $fieldName := toCamel $field.Field.Name.String }}
   {{ if or (eq $field.Settings.GetUpperCase.String "YES") (eq $field.Settings.UpperNoSpaceNoAccent.String "YES") }}
@@ -129,4 +134,3 @@ func {{.MessageName}}ToPointOfSlice(slc []{{.MessageName}}) []*{{.MessageName}}{
 	}
 	return resp
 }
-
