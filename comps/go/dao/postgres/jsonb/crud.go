@@ -173,10 +173,14 @@ func (d *Database[T]) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+
 	query := fmt.Sprintf("UPDATE %s set deleted_at=? where id=? and collection=?", r.tenantId)
-	result := d.db.Exec(query, time.Now(), id, r.tenantId)
+	result := d.db.Exec(query, time.Now(), id, d.tableName)
 	if result.Error != nil {
 		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return dao.ErrNotFound
 	}
 	return nil
 }
