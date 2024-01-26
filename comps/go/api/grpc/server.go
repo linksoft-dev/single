@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
@@ -38,6 +39,24 @@ type Services interface {
 	GetServiceName() string
 }
 
+func internalInterceptor(ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (resp any, err error) {
+
+	// copy grpc contexts values into context
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		for k, v := range md {
+			if len(k) > 0 {
+				ctx = context.WithValue(ctx, k, v[0])
+			}
+		}
+	}
+
+	return handler(ctx, req)
+}
+
 func StartGrpcServer(port string, services ...Services) error {
 	var err error
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
@@ -47,17 +66,20 @@ func StartGrpcServer(port string, services ...Services) error {
 	}
 
 	// add interceptors from all apps
-	var interceptors []grpc.ServerOption
+	interceptors := []grpc.UnaryServerInterceptor{
+		internalInterceptor,
+	}
 	for _, service := range services {
 		interceptor := service.GetInterceptor()
 		if interceptor == nil {
 			continue
 		}
-		interceptors = append(interceptors, grpc.UnaryInterceptor(interceptor))
+		interceptors = append(interceptors, interceptor)
 	}
 
+	chainInterceptor := grpc.ChainUnaryInterceptor(interceptors...)
 	grpcServer := grpc.NewServer(
-		interceptors...,
+		chainInterceptor,
 	)
 
 	// register all services
