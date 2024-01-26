@@ -32,10 +32,13 @@ func init() {
 	tracer = otel.GetTracerProvider().Tracer("single/dao/postgres/jsonb")
 }
 
-// NewDataBase factory method para criar uma isntancia da struct Database
-func NewDataBase[T dao.ObjI[T]](dbConnection *gorm.DB) *Database[T] {
+// NewDataBase factory method to create instance of Database struct
+// dbConnection is the database connection used for all operation
+// tenantId is the table will be used to insert data
+func NewDataBase[T dao.ObjI[T]](dbConnection *gorm.DB, tableName string) *Database[T] {
 	return &Database[T]{
-		db: dbConnection,
+		db:        dbConnection,
+		tableName: tableName,
 	}
 }
 
@@ -48,20 +51,25 @@ type Doc struct {
 
 type Database[T dao.ObjI[T]] struct {
 	updateFieldName dao.UpdateField
-	db              *gorm.DB
-	tx              *gorm.DB // guardar conexao quando for uma transacao
+	// this field will be the field "collection" in table structure
+	tableName string
+	db        *gorm.DB
+	tx        *gorm.DB // save connection when is transacation
 }
 
 type crudData struct {
-	tableName      string
-	collectionName string
+	tenantId string
 }
 
 // getTenantInfoFromContext this function returns the crud information needed to perform crud
 // operations
-func getTenantInfoFromContext(ctx context.Context) (r crudData) {
-	r.tableName, _ = ctx.Value("tenantId").(string)
-	r.collectionName, _ = ctx.Value("collectionName").(string)
+func getTenantInfoFromContext(ctx context.Context) (r crudData, err error) {
+	r.tenantId, _ = ctx.Value("tenant").(string)
+
+	if r.tenantId == "" {
+		return r, fmt.Errorf("tenantId was not found in the context")
+	}
+	r.tenantId = "org_" + r.tenantId
 	return
 }
 
@@ -98,7 +106,10 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 	if length < step {
 		step = length
 	}
-	r := getTenantInfoFromContext(ctx)
+	r, err := getTenantInfoFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for idx, record := range objs {
 		count++
 		doc, err2 := json.Marshal(record)
@@ -114,17 +125,17 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 		docStr = strings.ReplaceAll(docStr, "'", "''")
 		if insert {
 			sb.WriteString(fmt.Sprintf(`INSERT INTO %s(id,collection,doc) VALUES ('%s','%s','%s');`,
-				r.tableName,
+				r.tenantId,
 				record.GetId(),
-				r.collectionName,
+				d.tableName,
 				docStr),
 			)
 		} else {
 			sb.WriteString(fmt.Sprintf(`UPDATE %s SET doc='%s' WHERE id='%s' AND collection = '%s';`,
-				r.tableName,
+				r.tenantId,
 				docStr,
 				record.GetId(),
-				r.collectionName,
+				d.tableName,
 			),
 			)
 		}
@@ -133,14 +144,20 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 		if count == step || idx == length-1 {
 			count = 0
 			result := d.db.Exec(sb.String())
-			err := createTableIfDoesntExists(result.Error, d.db, r.tableName, getDocTableDDL(r.tableName))
-			if err != nil {
-				return list, err
+			if result == nil {
+				return nil, fmt.Errorf("response from exec returned nil")
 			}
 
-			result = d.db.Exec(sb.String())
-			if result != nil && result.Error != nil {
-				return list, result.Error
+			if result.Error != nil {
+				err := createTableIfDoesntExists(result.Error, d.db, r.tenantId, getDocTableDDL(r.tenantId))
+				if err != nil {
+					return list, err
+				}
+
+				result = d.db.Exec(sb.String())
+				if result != nil && result.Error != nil {
+					return list, result.Error
+				}
 			}
 
 			sb.Reset()
@@ -152,9 +169,12 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 }
 
 func (d *Database[T]) Delete(ctx context.Context, id string) error {
-	r := getTenantInfoFromContext(ctx)
-	query := fmt.Sprintf("UPDATE %s set deleted_at=? where id=? and collection=?", r.tableName)
-	result := d.db.Exec(query, time.Now(), id, r.collectionName)
+	r, err := getTenantInfoFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	query := fmt.Sprintf("UPDATE %s set deleted_at=? where id=? and collection=?", r.tenantId)
+	result := d.db.Exec(query, time.Now(), id, r.tenantId)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -162,9 +182,12 @@ func (d *Database[T]) Delete(ctx context.Context, id string) error {
 }
 
 func (d *Database[T]) DeleteHard(ctx context.Context, obj T) error {
-	r := getTenantInfoFromContext(ctx)
-	query := fmt.Sprintf("DELETE FROM %s where id=? and collection=?", r.tableName)
-	result := d.db.Exec(query, obj.GetId(), r.collectionName)
+	r, err := getTenantInfoFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	query := fmt.Sprintf("DELETE FROM %s where id=? and collection=?", r.tenantId)
+	result := d.db.Exec(query, obj.GetId(), d.tableName)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -174,13 +197,15 @@ func (d *Database[T]) DeleteHard(ctx context.Context, obj T) error {
 func (d *Database[T]) List(ctx context.Context, f filter.Filter) (records []T, err error) {
 	ctx, span := tracer.Start(ctx, "dao/postgres/jsonb/Find")
 	defer span.End()
-	r := getTenantInfoFromContext(ctx)
-
+	r, err := getTenantInfoFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// create sql statement
 	sqlSb := sqlbuilder.NewSelectBuilder()
 	sqlSb.Select("*")
-	sqlSb.From(r.tableName)
-	setWhere(sqlSb, f, r.collectionName)
+	sqlSb.From(r.tenantId)
+	setWhere(sqlSb, f, r.tenantId)
 	setOrderBy(sqlSb, f)
 	setLimit(sqlSb, f)
 	sqlStatement, args := sqlSb.Build()
@@ -239,8 +264,11 @@ func (d *Database[T]) Select(ctx context.Context, dest interface{}, query string
 	// if select statement has error, check if it's related to missing table, create if it's missing
 	err = result.Error
 	if err != nil {
-		r := getTenantInfoFromContext(ctx)
-		err = createTableIfDoesntExists(err, result, r.tableName, r.collectionName)
+		r, err := getTenantInfoFromContext(ctx)
+		if err != nil {
+			return err
+		}
+		err = createTableIfDoesntExists(err, result, r.tenantId, getDocTableDDL(r.tenantId))
 		if err != nil {
 			result = d.db.Raw(query, args...).Scan(dest)
 			err = result.Error
