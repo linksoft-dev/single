@@ -91,6 +91,7 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 		MessageName: msg.Name().String(),
 		TableName:   tableName,
 	}
+	log.Infof("generating service %s", msg.Name().String())
 
 	// check all fields settings
 	for _, field := range msg.Fields() {
