@@ -10,6 +10,7 @@ import (
 	pgs "github.com/lyft/protoc-gen-star"
 	pgsgo "github.com/lyft/protoc-gen-star/lang/go"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"text/template"
 )
 
@@ -70,6 +71,12 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 		return
 	}
 
+	var tableName string
+	_, err = msg.Extension(pb.E_TableName, &tableName)
+	if err != nil {
+		log.WithError(err).Warnf("error when try to check if message has tableName flag")
+	}
+
 	fileName := m.Context.OutputPath(f).SetExt(".service.go").String()
 	type fieldSettings struct {
 		Field    pgs.Field
@@ -78,10 +85,13 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 
 	data := struct {
 		MessageName string
+		TableName   string
 		Fields      []fieldSettings
 	}{
 		MessageName: msg.Name().String(),
+		TableName:   tableName,
 	}
+
 	// check all fields settings
 	for _, field := range msg.Fields() {
 		// perform the parse into Field object, this is the way to check the options present in each proto field about Field settings
@@ -98,6 +108,7 @@ func (m *reportModule) generateCrud(msg pgs.Message, f pgs.File) {
 	}
 	funcMap := &template.FuncMap{
 		"toCamel": str.ToCamel,
+		"toLower": strings.ToLower,
 	}
 	templateName := "template_service.go.tmpl"
 

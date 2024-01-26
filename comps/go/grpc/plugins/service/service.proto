@@ -7,6 +7,8 @@ option go_package = "github.com/linksoft-dev/single/comps/go/grpc/plugins/servic
 
 extend google.protobuf.MessageOptions {
   bool crud = 1000;
+  // this field is used to generate the table name
+  string tableName = 1001;
 }
 
 extend google.protobuf.FieldOptions {
