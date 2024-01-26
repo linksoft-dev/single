@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"github.com/linksoft-dev/single/comps/go/filter"
 	"github.com/linksoft-dev/single/comps/go/types"
 	"time"
@@ -29,6 +30,10 @@ func (b BaseModel) GetId() string {
 type ObjI[T any] interface {
 	GetId() string
 }
+
+var (
+	ErrNotFound = fmt.Errorf("record not found")
+)
 
 type UpdateField []string
 
