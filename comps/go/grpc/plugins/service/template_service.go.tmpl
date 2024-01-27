@@ -33,8 +33,12 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 		return nil, fmt.Errorf("required parameter {{.MessageName}} not passed by parameter")
 	}
 
-    // validation
     v := InputParse{{.MessageName}}(*req.{{.MessageName}})
+    if v.Id == "" {
+   		v.Id = "{{ toLower .MessageName}}/"+str.Uuid()
+   	}
+
+    // validation
 	validator := Validate{{.MessageName}}(ctx, *req.{{.MessageName}})
 	if s.OnValidate !=nil {
    		s.OnValidate(ctx, validator)
@@ -47,8 +51,8 @@ func (s *{{.MessageName}}Server) Create(ctx context.Context, req *Create{{.Messa
 	if err != nil {
 		return nil, err
 	}
-	v = FormatOutput{{.MessageName}}(v)
-	return &Create{{.MessageName}}Response{ {{.MessageName}}: r}, nil
+	v = FormatOutput{{.MessageName}}(*r)
+	return &Create{{.MessageName}}Response{ {{.MessageName}}: &v}, nil
 }
 
 func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.MessageName}}Request) (*Update{{.MessageName}}Response, error) {
@@ -71,6 +75,7 @@ func (s *{{.MessageName}}Server) Update(ctx context.Context, req *Update{{.Messa
         return nil, validator
     }
 
+    v.Id = req.Id
 	err := s.dao.Update(ctx, &v, fieldMask.Paths)
 	if err != nil {
 	    if errors.Is(err, dao.ErrNotFound) {
@@ -87,7 +92,13 @@ func (s *{{.MessageName}}Server) Delete(ctx context.Context, req *Delete{{.Messa
 	    return nil, status.Error(codes.InvalidArgument,"id is required for delete process")
 	}
 
-	err := s.dao.Delete(ctx, req.GetId())
+	var err error
+    if req.Hard == true {
+        err = s.dao.DeleteHard(ctx, req.GetId())
+    } else {
+        err = s.dao.Delete(ctx, req.GetId())
+    }
+
 	if err != nil {
     	if errors.Is(err, dao.ErrNotFound) {
     		return nil, status.Error(codes.NotFound, err.Error())
@@ -125,10 +136,6 @@ func (s *{{.MessageName}}Server) Get(ctx context.Context, req *Get{{.MessageName
 
 // inputParse{{.MessageName}} perform some transformation/normalization over the object for type {{.MessageName}}
 func InputParse{{.MessageName}}(v {{.MessageName}}) {{.MessageName}} {
-
-    if v.Id == "" {
-		v.Id = "{{ toLower .MessageName}}/"+str.Uuid()
-	}
 
 {{ range $idx, $field := .Fields }}
   {{ $fieldName := toCamel $field.Field.Name.String }}
