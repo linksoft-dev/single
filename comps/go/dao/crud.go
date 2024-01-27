@@ -42,7 +42,7 @@ type Crud[T ObjI[T]] interface {
 	Update(ctx context.Context, obj T, fields UpdateField) error
 	Save(ctx context.Context, insert bool, obj ...T) ([]T, error)
 	Delete(ctx context.Context, id string) error
-	DeleteHard(context.Context, T) error
+	DeleteHard(ctx context.Context, id string) error
 	List(ctx context.Context, filter filter.Filter) ([]T, error)
 	Get(ctx context.Context, id string) (T, error)
 }
