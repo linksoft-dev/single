@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -119,6 +120,37 @@ func ToStringArray(val interface{}) (result []string) {
 	case []string:
 		result = x
 	}
+	return
+}
+
+func ToInterfaceArray(val []string) (result []interface{}) {
+	for _, s := range val {
+		result = append(result, s)
+	}
+	return
+}
+
+// ToStringAsArray convert slice of inteface into a string with separation character
+func ToStringAsArray(val interface{}, separation string, quote bool) (result string) {
+	if IsInterfaceNil(val) {
+		return
+	}
+	if separation == "" {
+		separation = ","
+	}
+	switch x := val.(type) {
+	case []interface{}:
+		for _, v := range x {
+			if value, ok := v.(string); ok {
+				if quote {
+					result = fmt.Sprintf("%s'%s'%s", result, value, separation)
+					continue
+				}
+				result = fmt.Sprintf("%s%s%s", result, value, separation)
+			}
+		}
+	}
+	result = strings.TrimSuffix(result, separation)
 	return
 }
 
