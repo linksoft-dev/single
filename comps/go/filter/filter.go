@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"github.com/linksoft-dev/single/comps/go/obj"
 	"github.com/linksoft-dev/single/comps/go/str"
 	"google.golang.org/protobuf/types/known/anypb"
 	"strings"
@@ -49,7 +50,7 @@ func (q *Filter) StartsOrContain(field, value string) *Filter {
 }
 
 func (q *Filter) In(field string, value ...interface{}) *Filter {
-	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_In, Value: interfaceToString(value)})
+	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_In, Value: obj.ToStringAsArray(value, ",", true)})
 	return q
 }
 
