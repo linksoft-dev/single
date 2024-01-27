@@ -117,7 +117,7 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 			return list, err2
 		}
 		if record.GetId() == "" {
-			err = fmt.Errorf("FieldName id cannot be blank")
+			err = fmt.Errorf("field 'id' cannot be blank")
 			return nil, err
 		}
 
@@ -160,6 +160,10 @@ func (d *Database[T]) Save(ctx context.Context, insert bool, objs ...T) (list []
 				}
 			}
 
+			if result.RowsAffected == 0 {
+				return nil, fmt.Errorf("rows not affected by")
+			}
+
 			sb.Reset()
 		}
 	}
@@ -174,7 +178,7 @@ func (d *Database[T]) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	query := fmt.Sprintf("UPDATE %s set deleted_at=? where id=? and collection=?", r.tenantId)
+	query := fmt.Sprintf("UPDATE %s set deleted_at=? where id=? and collection=? and deleted_at is null", r.tenantId)
 	result := d.db.Exec(query, time.Now(), id, d.tableName)
 	if result.Error != nil {
 		return result.Error
@@ -185,15 +189,19 @@ func (d *Database[T]) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (d *Database[T]) DeleteHard(ctx context.Context, obj T) error {
+func (d *Database[T]) DeleteHard(ctx context.Context, id string) error {
 	r, err := getTenantInfoFromContext(ctx)
 	if err != nil {
 		return err
 	}
+
 	query := fmt.Sprintf("DELETE FROM %s where id=? and collection=?", r.tenantId)
-	result := d.db.Exec(query, obj.GetId(), d.tableName)
+	result := d.db.Exec(query, id, d.tableName)
 	if result.Error != nil {
 		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return dao.ErrNotFound
 	}
 	return nil
 }
@@ -209,7 +217,7 @@ func (d *Database[T]) List(ctx context.Context, f filter.Filter) (records []T, e
 	sqlSb := sqlbuilder.NewSelectBuilder()
 	sqlSb.Select("*")
 	sqlSb.From(r.tenantId)
-	setWhere(sqlSb, f, r.tenantId)
+	setWhere(sqlSb, f, d.tableName)
 	setOrderBy(sqlSb, f)
 	setLimit(sqlSb, f)
 	sqlStatement, args := sqlSb.Build()
@@ -353,6 +361,11 @@ func setWhere(sb *sqlbuilder.SelectBuilder, f filter.Filter, resourceName string
 			sb.Where(sb.E("collection", resourceName))
 		}
 
+		if len(f.Ids) > 0 {
+			ids := obj.ToInterfaceArray(f.Ids)
+			f.In("id", ids...)
+		}
+
 		// caso nao tenha passado o campo doc, adicione automaticamente
 		for idx, value := range f.Conditions {
 			if !strings.Contains(value.FieldName, "doc") {
@@ -399,12 +412,12 @@ func setWhere(sb *sqlbuilder.SelectBuilder, f filter.Filter, resourceName string
 				case filter.Operator_Contains:
 					sb.Where(fmt.Sprintf("%s ilike %%%s%%", c.FieldName, c.Value))
 				case filter.Operator_In:
-					stringArray := obj.ToStringArray(c.Value)
+					where := fmt.Sprintf("%s in (%s)", c.FieldName, c.Value)
 					if c.Not {
-						sb.Where(sb.NotIn(c.FieldName, stringArray))
+						sb.Where(where)
 						continue
 					}
-					sb.Where(sb.In(c.FieldName, stringArray))
+					sb.Where(where)
 				case filter.Operator_Gte:
 					sb.Where(sb.GE(c.FieldName, c.Value))
 				case filter.Operator_Gt:
