@@ -19,6 +19,8 @@ const (
 	errCodeCustomMessage = "customMessage"
 	errCodeIsIn          = "isIn"
 	isByteLength
+	isByteMinLength
+	isByteMaxLength
 	inRangeFloat
 	inRangeInt
 	equalsFloat
@@ -206,6 +208,26 @@ func (v *Validation) IsByteLength(identification, str string, min, max int) bool
 			msg := i18n.GetMessage(v.language, isByteLength, i18nMessages{Name: identification, Value1: min, Value2: max, CurrentValue: len(str)})
 			v.addError("", msg, isByteLength)
 			return false
+		}
+	}
+	return true
+}
+
+func (v *Validation) IsByteLtLength(identification, str string, min int) bool {
+	if str != "" {
+		if len(str) < min {
+			msg := i18n.GetMessage(v.language, isByteMinLength, i18nMessages{Name: identification, Value1: min, CurrentValue: len(str)})
+			v.addError("", msg, isByteMinLength)
+		}
+	}
+	return true
+}
+
+func (v *Validation) IsByteGLtLength(identification, str string, min int) bool {
+	if str != "" {
+		if len(str) < min {
+			msg := i18n.GetMessage(v.language, isByteMaxLength, i18nMessages{Name: identification, Value1: min, CurrentValue: len(str)})
+			v.addError("", msg, isByteMaxLength)
 		}
 	}
 	return true
