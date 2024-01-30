@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -92,32 +92,38 @@ func StartGrpcServer(port string, services ...Services) error {
 		log.Infof("registering Service '%s'", service.GetServiceName())
 	}
 
+	go runWebServer()
+	go testServerConnection(port)
+
 	reflection.Register(grpcServer)
-	// start the server whatever anything
-	go func() {
-		if err := grpcServer.Serve(listen); err != nil {
-			log.Fatalf("failed to serve gRPC over %s: %v", port, err)
-		}
-	}()
-
-	eg := errgroup.Group{}
-
-	eg.Go(func() error {
-		go runWebServer()
-		return nil
-	})
-
-	if err := eg.Wait(); err != nil {
-		return err
+	if err := grpcServer.Serve(listen); err != nil {
+		log.Fatalf("failed to serve gRPC over %s: %v", port, err)
 	}
-	log.Infof("GRPC server listening on %s\n", port)
 	return nil
 }
 
-func GetClientConnection(serverAddr string) (*grpc.ClientConn, error) {
-	clientConnection, err := grpc.Dial(serverAddr, grpc.WithInsecure())
+func GetClientConnection(serverAddr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	clientConnection, err := grpc.Dial(serverAddr, opts...)
 	if err != nil {
 		log.Fatalf("Falha ao conectar: %v", err)
 	}
 	return clientConnection, nil
+}
+
+// testServerConnection test grpc connection for local server
+func testServerConnection(port string) bool {
+	conn, err := GetClientConnection("localhost:"+port,
+		grpc.WithInsecure(),
+		grpc.FailOnNonTempDialError(true), // fail immediately if can't connect
+		grpc.WithBlock())
+	if err != nil {
+		return false
+	}
+	// test server connection
+	for {
+		if conn.GetState() == connectivity.Ready {
+			log.Infof("GRPC server listening on port %s", port)
+			return true
+		}
+	}
 }
