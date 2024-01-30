@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	pb "github.com/linksoft-dev/single/comps/go/grpc/plugins/validate/pb"
+	"github.com/linksoft-dev/single/comps/go/obj"
 	"github.com/linksoft-dev/single/comps/go/str"
 	"github.com/linksoft-dev/single/comps/go/tpl"
 	pgs "github.com/lyft/protoc-gen-star"
@@ -91,6 +92,7 @@ func (m *module) generateValidation(msg pgs.Message, f pgs.File) {
 	data.Fields[0].Field.Type()
 	funcMap := &template.FuncMap{
 		"toCamel": str.ToCamel,
+		"toInt":   obj.ToInt,
 	}
 	templateName := "template_validate.go.tmpl"
 

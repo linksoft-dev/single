@@ -17,9 +17,24 @@ func Validate{{.MessageName}}(ctx context.Context, m {{.MessageName}}) *validati
 	  {{ $fieldName := toCamel $field.Field.Name.String }}
 
 	   {{ if eq $field.Type "string" }}
-	      {{ if eq $field.Type "string" }}
-	         v.IsByteLength("{{ $fieldName }}", m.{{ $fieldName }}, {{ $field.StringRules.MinLen }}, {{ $field.StringRules.MaxLen }})
+          {{ $minLengh := toInt $field.StringRules.MinLen }}
+          {{ $maxLengh := toInt $field.StringRules.MaxLen }}
+
+	      {{ if and (gt $minLengh 0)  (gt $maxLengh 0) }}
+	         v.IsByteLength("{{ $fieldName }}", m.{{ $fieldName }}, {{ $minLengh }}, {{ $maxLengh }})
+          {{ else }}
+            {{ if gt $minLengh 0 }}
+                v.IsByteLtLength("{{ $fieldName }}", m.{{ $fieldName }}, {{ $minLengh }})
+            {{ end }}
+            {{ if gt $maxLengh 0 }}
+                v.IsByteGLtLength("{{ $fieldName }}", m.{{ $fieldName }}, {{ $maxLengh }})
+            {{ end }}
 	      {{ end }}
+
+	      {{ if and (ne $field.StringRules.Required nil) (gt (toInt $field.StringRules.Required.MinLen) 0)  (gt (toInt $field.StringRules.Required.MaxLen) 0) }}
+	        v.IsFilled("{{ $fieldName }}", m.{{ $fieldName }}, {{ $field.StringRules.MinLen }}, {{ $field.StringRules.MaxLen }})
+	      {{ end }}
+
         {{ end }}
 	{{ end }}
 

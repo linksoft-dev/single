@@ -617,6 +617,12 @@ message StringRules {
   // IgnoreEmpty specifies that the validation rules of this field should be
   // evaluated only if the field is not empty
   optional bool ignore_empty = 26;
+  optional StringRequired required = 27;
+}
+
+message StringRequired {
+    required int64 min_len = 1;
+    required int64 max_len = 2;
 }
 
 // WellKnownRegex contain some well-known patterns.
