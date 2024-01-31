@@ -8,8 +8,8 @@ class CrudFormDetail extends StatefulWidget {
   CrudFormDetail({
     required this.screenName,
     required this.body,
-    this.customButtons ,
-  }): customButtons = customButtons ?? [];
+    required this.customButtons ,
+  });
 
   @override
   _CrudFormDetail createState() => _CrudFormDetail(
@@ -67,7 +67,7 @@ class _CrudFormDetail extends State<CrudFormDetail> {
     if (customButtons == null) {
       return buttons;
     }
-    return buttons + customButtons;
+    return buttons + customButtons!;
   }
 
   @override

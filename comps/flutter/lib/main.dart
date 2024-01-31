@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:single/apps/contas/Form.dart';
+import 'package:single/apps/calculator//Form.dart';
 import 'package:single/pages/app.dart';
 
 import 'apps/person/Form.dart';
@@ -8,6 +9,7 @@ void main() {
   List<Pages> pages = [];
   pages.add(Pages("Pessoa", "/pessoa", (context) => PersonForm()));
   pages.add(Pages("Contas Receber", "/teste2", (context) => ContasForm()));
+  pages.add(Pages("FatorR", "/fatorr", (context) => CalculaFatorR()));
   var app = App("crud", pages);
 
   runApp(app);

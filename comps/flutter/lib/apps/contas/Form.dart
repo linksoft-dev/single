@@ -7,7 +7,7 @@ class ContasForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return CrudFormDetail(
       screenName: "Contas",
-      body: Container(),
+      body: Container(), customButtons: [],
     );
   }
 }
