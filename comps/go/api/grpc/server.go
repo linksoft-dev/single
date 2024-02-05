@@ -58,6 +58,9 @@ func internalInterceptor(ctx context.Context,
 }
 
 func StartGrpcServer(port string, services ...Services) error {
+	if port == "" {
+		log.Fatal("Grpc por was not provied ")
+	}
 	var err error
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
@@ -105,22 +108,22 @@ func StartGrpcServer(port string, services ...Services) error {
 func GetClientConnection(serverAddr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	clientConnection, err := grpc.Dial(serverAddr, opts...)
 	if err != nil {
-		log.Fatalf("Falha ao conectar: %v", err)
+		return nil, err
 	}
 	return clientConnection, nil
 }
 
 // testServerConnection test grpc connection for local server
 func testServerConnection(port string) bool {
-	conn, err := GetClientConnection("localhost:"+port,
-		grpc.WithInsecure(),
-		grpc.FailOnNonTempDialError(true), // fail immediately if can't connect
-		grpc.WithBlock())
-	if err != nil {
-		return false
-	}
 	// test server connection
 	for {
+		conn, _ := GetClientConnection("localhost:"+port,
+			grpc.WithInsecure(),
+			grpc.FailOnNonTempDialError(true), // fail immediately if can't connect
+			grpc.WithBlock())
+		if conn == nil {
+			continue
+		}
 		if conn.GetState() == connectivity.Ready {
 			log.Infof("GRPC server listening on port %s", port)
 			return true
