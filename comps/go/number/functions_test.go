@@ -72,3 +72,31 @@ func TestMinInt(t *testing.T) {
 		assert.Equal(t, v.expected, got, "", v.value, v.expected, got)
 	}
 }
+
+func TestRoundFloat(t *testing.T) {
+	testCases := []struct {
+		Name      string
+		Value     float64
+		Precision int
+		Expected  float64
+	}{
+		{Name: "Pi with 2 decimal places", Value: 3.14159, Precision: 2, Expected: 3.14},
+		{Name: "Float with 1 decimal place", Value: 6.666, Precision: 1, Expected: 6.7},
+		{Name: "Large float with no decimal places", Value: 123456.789, Precision: 0, Expected: 123456},
+		{Name: "Float with 3 decimal places", Value: 0.987654, Precision: 3, Expected: 0.988},
+		{Name: "Float with negative precision", Value: 8.999, Precision: -1, Expected: 9.0}, // Precision default to 1
+		{Name: "Integer with no decimal places", Value: 42, Precision: 0, Expected: 42.0},
+		{Name: "Float with 1 decimal place", Value: 7.1, Precision: 1, Expected: 7.1},
+		{Name: "Float with 2 decimal places", Value: 99.99, Precision: 2, Expected: 99.99},
+		{Name: "Zero with 2 decimal places", Value: 0, Precision: 2, Expected: 0},
+		{Name: "Negative float with 1 decimal place", Value: -5.678, Precision: 1, Expected: -5.7},
+		{Name: "Negative float with 2 decimal places", Value: -123.45, Precision: 2, Expected: -123.45},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			result := RoundFloat(tc.Value, tc.Precision)
+			assert.Equal(t, tc.Expected, result, "Expected %v, but got %v", tc.Expected, result)
+		})
+	}
+}
