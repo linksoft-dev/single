@@ -21,7 +21,6 @@ require (
 	github.com/jackc/pgconn v1.14.1
 	github.com/lib/pq v1.10.9
 	github.com/lyft/protoc-gen-star v0.6.2
-	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/osamingo/checkdigit v1.0.1
 	github.com/rodrigorodriguescosta/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/segmentio/ksuid v1.0.4
@@ -35,14 +34,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.19.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20220823124025-807a23277127
-	golang.org/x/sync v0.3.0
 	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.58.0
 	google.golang.org/protobuf v1.31.0
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5
-	gorm.io/plugin/opentelemetry v0.1.4
 )
 
 require (

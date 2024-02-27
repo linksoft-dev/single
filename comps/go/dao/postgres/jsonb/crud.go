@@ -206,7 +206,7 @@ func (d *Database[T]) DeleteHard(ctx context.Context, id string) error {
 	return nil
 }
 
-func (d *Database[T]) List(ctx context.Context, f filter.Filter) (records []T, err error) {
+func (d *Database[T]) List(ctx context.Context, f filter.GoFilter) (records []T, err error) {
 	ctx, span := tracer.Start(ctx, "dao/postgres/jsonb/Find")
 	defer span.End()
 	r, err := getTenantInfoFromContext(ctx)
@@ -251,7 +251,7 @@ func unmarshalDocs[T any](docs []Doc, records *[]T) error {
 }
 
 func (d *Database[T]) Get(ctx context.Context, id string) (t T, err error) {
-	f := filter.Filter{}
+	f := filter.NewFilter("")
 	f.First = 1
 	f.Eq("id", id)
 	records, err := d.List(ctx, f)
@@ -341,7 +341,7 @@ func (d *Database[T]) getValidationError(err error) error {
 	return err
 }
 
-func setWhere(sb *sqlbuilder.SelectBuilder, f filter.Filter, resourceName string) {
+func setWhere(sb *sqlbuilder.SelectBuilder, f filter.GoFilter, resourceName string) {
 	// se econnect 177.54.145.68:27019stiver consultado com rawquery, nao processe nada, apenas faça o scan para o `dest`
 	if f.RawFilter == "" {
 		if resourceName == "" {
@@ -433,7 +433,7 @@ func setWhere(sb *sqlbuilder.SelectBuilder, f filter.Filter, resourceName string
 	}
 }
 
-func setOrderBy(sb *sqlbuilder.SelectBuilder, f filter.Filter) {
+func setOrderBy(sb *sqlbuilder.SelectBuilder, f filter.GoFilter) {
 
 	//if the order by has no cast to doc field, it means it has to be added
 	for _, v := range f.OrderBy {
@@ -464,7 +464,7 @@ func setOrderBy(sb *sqlbuilder.SelectBuilder, f filter.Filter) {
 	}
 }
 
-func setLimit(sb *sqlbuilder.SelectBuilder, f filter.Filter) {
+func setLimit(sb *sqlbuilder.SelectBuilder, f filter.GoFilter) {
 	if f.Limit > 0 {
 		sb.Limit(int(f.Limit))
 	}

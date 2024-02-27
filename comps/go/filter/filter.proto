@@ -30,6 +30,7 @@ message condition {
   operator operator = 2;
   string value = 3;
   bool not = 4;
+  string filter_operator = 5;
 }
 
 message OrderBy {

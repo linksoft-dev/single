@@ -7,40 +7,67 @@ import (
 	"strings"
 )
 
-func NewQuery(mainFilter string) (q Filter) {
+type GoFilter struct {
+	Filter
+	OrCondition   map[int][]Condition
+	hasFullSearch bool
+}
+
+func NewFilter(mainFilter string) (q GoFilter) {
 	q.MainFilter = str.UpperNoSpaceNoAccent(mainFilter)
 	q.Limit = 50
 	return
 }
 
-func (q *Filter) Eq(field string, value interface{}) *Filter {
+// FullSearch is a special function to search by many fields at once using OR logical Operator
+func (q *GoFilter) FullSearch(value any, fields ...string) *GoFilter {
+	v := obj.ToString("", value)
+	if v == "" {
+		return q
+	}
+	if q.OrCondition == nil {
+		q.OrCondition = map[int][]Condition{}
+	}
+	idx := len(q.OrCondition)
+	for _, field := range fields {
+		q.hasFullSearch = true
+		q.OrCondition[idx] = append(q.OrCondition[idx], Condition{FieldName: field, Operator: Operator_Starts, Value: v, FilterOperator: "OR"})
+	}
+	return q
+}
+
+func (q *GoFilter) HasFullSearch() bool {
+	return q.hasFullSearch
+}
+
+func (q *GoFilter) Eq(field string, value interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Equals, Value: interfaceToString(value)})
 	return q
 }
 
-func (q *Filter) Ne(field string, value interface{}) *Filter {
+func (q *GoFilter) Ne(field string, value interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Not: true, Operator: Operator_Equals, Value: interfaceToString(value)})
 	return q
 }
 
-func (q *Filter) AddWhere(where string) *Filter {
+func (q *GoFilter) AddWhere(where string) *GoFilter {
 	q.AdditionalConditions = append(q.AdditionalConditions, where)
 	return q
 }
 
-func (q *Filter) Contains(field, value string) *Filter {
+func (q *GoFilter) Contains(field, value string) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Contains, Value: value})
 	return q
 }
 
-func (q *Filter) StartsWith(field, value string) *Filter {
+func (q *GoFilter) StartsWith(field, value string) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Starts, Value: value})
 	return q
 }
 
 // StartsOrContain funcao para consultar comecando com ou contendo o valor, se houver * no valor,
 // ele consulta por contém, caso contrário consulta por start
-func (q *Filter) StartsOrContain(field, value string) *Filter {
+func (q *GoFilter) StartsOrContain(field, value string) *GoFilter {
 	if strings.Contains(value, "*") {
 		q.Contains(field, strings.ReplaceAll(value, "*", ""))
 	} else {
@@ -49,32 +76,32 @@ func (q *Filter) StartsOrContain(field, value string) *Filter {
 	return q
 }
 
-func (q *Filter) In(field string, value ...interface{}) *Filter {
+func (q *GoFilter) In(field string, value ...interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_In, Value: obj.ToStringAsArray(value, ",", true)})
 	return q
 }
 
-func (q *Filter) NotIn(field string, value ...*anypb.Any) *Filter {
+func (q *GoFilter) NotIn(field string, value ...*anypb.Any) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Not: true, Operator: Operator_In, Value: interfaceToString(value)})
 	return q
 }
 
-func (q *Filter) Gt(field string, value interface{}) *Filter {
+func (q *GoFilter) Gt(field string, value interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Gt, Value: interfaceToString(value)})
 	return q
 }
 
-func (q *Filter) Gte(field string, value interface{}) *Filter {
+func (q *GoFilter) Gte(field string, value interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Gte, Value: interfaceToString(value)})
 	return q
 }
 
-func (q *Filter) Lt(field string, value interface{}) *Filter {
+func (q *GoFilter) Lt(field string, value interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Lt, Value: interfaceToString(value)})
 	return q
 }
 
-func (q *Filter) Lte(field string, value interface{}) *Filter {
+func (q *GoFilter) Lte(field string, value interface{}) *GoFilter {
 	q.Conditions = append(q.Conditions, &Condition{FieldName: field, Operator: Operator_Lte, Value: interfaceToString(value)})
 	return q
 }
@@ -83,31 +110,31 @@ func interfaceToString(i interface{}) string {
 	return ""
 }
 
-func (q *Filter) Select(field ...string) *Filter {
+func (q *GoFilter) Select(field ...string) *GoFilter {
 	q.SelectFields = append(q.SelectFields, field...)
 	return q
 }
 
-func (q *Filter) From(tableName string) *Filter {
+func (q *GoFilter) From(tableName string) *GoFilter {
 	//q.TableName = tableName
 	return q
 }
 
-func (q *Filter) AddCondition(condition Condition) *Filter {
+func (q *GoFilter) AddCondition(condition Condition) *GoFilter {
 	q.Conditions = append(q.Conditions, &condition)
 	return q
 }
 
-func (q *Filter) OrderByAsc(field string) *Filter {
+func (q *GoFilter) OrderByAsc(field string) *GoFilter {
 	q.AddOrderBy(field, Direction_ASC)
 	return q
 }
 
-func (q *Filter) OrderByDesc(field string) *Filter {
+func (q *GoFilter) OrderByDesc(field string) *GoFilter {
 	q.AddOrderBy(field, Direction_DESC)
 	return q
 }
-func (q *Filter) AddOrderBy(field string, direction Direction) *Filter {
+func (q *GoFilter) AddOrderBy(field string, direction Direction) *GoFilter {
 	if q.OrderBy == nil {
 		q.OrderBy = []*OrderBy{}
 	}
