@@ -8,21 +8,22 @@ message Filter {
   repeated string select_fields = 2;
   repeated string ids = 3;
   repeated condition conditions = 4;
-  repeated OrderBy orderBy = 5;
-  int64 limit = 6;
-  int64 skip = 7;
-  int64 first = 8;
-  int64 last = 9;
-  // free field to be sent filter compatible with Filter implementation
-  string rawFilter = 10;
-  // add raw conditions to be sent to Filter implementation
-  string rawConditions = 11;
-
-  // this field can be used to add "additional conditions", similar to where clause in SQL language
-  repeated string additionalConditions = 12;
+  repeated condition Orconditions = 5;
+  repeated OrderBy orderBy = 6;
+  int64 limit = 7;
+  int64 skip = 8;
+  int64 first = 9;
+  int64 last = 10;
+//  // free field to be sent filter compatible with Filter implementation
+  string rawFilter = 11;
+//  // add raw conditions to be sent to Filter implementation
+//  string rawConditions = 11;
+//
+//  // this field can be used to add "additional conditions", similar to where clause in SQL language
+//  repeated string additionalConditions = 12;
   // some implementations use soft delete, this field would help the Filter implementation to decide how the filter
   //  including records "deleted"
-  bool ignoreSoftDelete = 13;
+  bool ignoreSoftDelete = 12;
 }
 
 message condition {
