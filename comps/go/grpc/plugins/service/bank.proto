@@ -5,7 +5,7 @@ package investimentos;
 import "google/api/annotations.proto";
 import "service.proto";
 
-option go_package = "investbr/apps/simulador/pb";
+option go_package = "investbr/apps/simulador/pb1";
 
 // Enumeração para o tipo de produto.
 enum TipoProduto {

@@ -85,16 +85,18 @@ func (m *module) generateCrud(msg pgs.Message, f pgs.File) {
 		Field    pgs.Field
 		Settings pb.Field
 	}
-
 	data := struct {
+		Package     string
 		MessageName string
 		TableName   string
 		Fields      []fieldSettings
 	}{
+		Package:     m.Context.PackageName(f).String(),
 		MessageName: msg.Name().String(),
 		TableName:   tableName,
 	}
 	log.Infof("generating service %s in path '%s'", msg.Name().String(), fileName)
+	log.Infof("go package '%s'", data.Package)
 
 	// check all fields settings
 	for _, field := range msg.Fields() {

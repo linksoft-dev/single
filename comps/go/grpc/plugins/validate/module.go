@@ -68,6 +68,7 @@ type fieldSettings struct {
 
 type message struct {
 	MessageName string
+	Package     string
 	Fields      []fieldSettings
 }
 
@@ -77,6 +78,7 @@ func (m *module) generateValidation(msg pgs.Message, f pgs.File) {
 	fileName := m.Context.OutputPath(f).SetExt(".validate.go").String()
 	data := message{
 		MessageName: msg.Name().String(),
+		Package:     m.Context.PackageName(f).String(),
 	}
 
 	for _, f := range msg.Fields() {

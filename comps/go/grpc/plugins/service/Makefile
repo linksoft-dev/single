@@ -1,7 +1,7 @@
 debug:
 	 protoc \
 	  --plugin=protoc-gen-debug=/home/dev/go/bin/protoc-gen-debug \
-	  --proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos \
+	  --proto_path=/home/dev/projects/single/comps/go/api/grpc/protos \
 	  --proto_path=/home/dev/projects/single/comps/go/grpc/plugins/service \
 	  --debug_out=".:." \
 	  *.proto
@@ -9,7 +9,7 @@ debug:
 generate_service_pb:
 	 protoc \
       --go_out=./pb \
-      --proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos \
+      --proto_path=/home/dev/projects/single/comps/go/api/grpc/protos \
       --proto_path=/home/dev/projects/single/comps/go/grpc/plugins/service \
       --go_opt=paths=source_relative \
       service.proto
@@ -23,3 +23,6 @@ test_plugin_generator:
       --proto_path=/home/dev/projects/single/comps/go/api/adapters/grpc/protos \
       --proto_path=/home/dev/projects/single/comps/go/grpc/plugins/service \
       bank.proto
+
+# compile the plugin and save into path
+build:
