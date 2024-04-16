@@ -95,7 +95,7 @@ func (q *Filter) Lte(field string, value interface{}) *Filter {
 }
 
 func interfaceToString(i interface{}) string {
-	return ""
+	return obj.ToString("", i)
 }
 
 func (q *Filter) Select(field ...string) *Filter {
