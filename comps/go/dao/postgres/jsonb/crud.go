@@ -224,7 +224,7 @@ func (d *Database[T]) List(ctx context.Context, f filter.Filter) (records []T, e
 
 	// get docs from database
 	var docs []Doc
-	err = d.Select(ctx, &docs, sqlStatement, args)
+	err = d.Select(ctx, &docs, sqlStatement, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func setWhere(sb *sqlbuilder.SelectBuilder, f filter.Filter, resourceName string
 					if c.Value == "" {
 						sb.Where(sb.IsNull(c.FieldName))
 					} else {
-						sb.Where(fmt.Sprintf("%s = ?", c.FieldName))
+						sb.Where(sb.E(c.FieldName, c.Value))
 					}
 				case filter.Operator_Starts:
 					sb.Where(fmt.Sprintf("%s ilike %s%%", c.FieldName, c.Value))
