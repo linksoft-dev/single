@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option go_package = "github.com/linksoft-dev/single/comps/go/filter";
+
+// generic filter API specification
+message Filter {
+  string main_filter = 1;
+  repeated string select_fields = 2;
+  repeated string ids = 3;
+  repeated condition conditions = 4;
+  repeated condition Orconditions = 5;
+  repeated OrderBy orderBy = 6;
+  int64 limit = 7;
+  int64 skip = 8;
+  int64 first = 9;
+  int64 last = 10;
+//  // free field to be sent filter compatible with Filter implementation
+  string rawFilter = 11;
+//  // add raw conditions to be sent to Filter implementation
+//  string rawConditions = 11;
+//
+//  // this field can be used to add "additional conditions", similar to where clause in SQL language
+//  repeated string additionalConditions = 12;
+  // some implementations use soft delete, this field would help the Filter implementation to decide how the filter
+  //  including records "deleted"
+  bool ignoreSoftDelete = 12;
+}
+
+message condition {
+  string field_name = 1;
+  Operator operator = 2;
+  string value = 3;
+  bool not = 4;
+  string filter_operator = 5;
+}
+
+message OrderBy {
+  string field_name = 1;
+  Direction direction = 2;
+}
+
+enum Direction {
+  ASC = 0;
+  DESC = 1;
+}
+
+enum Operator {
+  Equals = 0;
+  Contains = 1;
+  Starts = 2;
+  In = 3;
+  Gt = 4;
+  Gte = 5;
+  Lt = 6;
+  Lte = 7;
+}

@@ -5,7 +5,7 @@ package investimentos;
 import "google/api/annotations.proto";
 import "service.proto";
 
-option go_package = "investbr/apps/simulador/pb";
+option go_package = "investbr/apps/simulador/pb1";
 
 // Enumeração para o tipo de produto.
 enum TipoProduto {
@@ -78,14 +78,22 @@ message FindBancoResponse {
 }
 
 message Banco {
-  option (kissproject.single.service.crud) = true;
-  string nome = 1;
+  option (service.crud) = true;
+  string nome = 1
+  [
+    (service.field).upperCase = YES,
+    (service.field).trimSpace = YES
+  ];
   string icone = 2;
   repeated Investimento investimentos = 3;
 }
 
 message Investimento {
-  string nome = 1;
+  string nome = 1
+  [
+    (service.field).upperCase = YES,
+    (service.field).trimSpace = NO
+  ];
   float percentual_cdi = 2;
   TipoProduto tipo_produto = 3;
   TipoInvestimento tipo_investimento = 4;

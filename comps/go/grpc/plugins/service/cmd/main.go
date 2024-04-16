@@ -12,6 +12,7 @@ func main() {
 	).RegisterModule(
 		genservice.NewModule(),
 	).RegisterPostProcessor(
+		pgsgo.GoImports(),
 		pgsgo.GoFmt(),
 	).Render()
 }

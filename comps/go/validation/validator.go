@@ -1,8 +1,10 @@
 package validation
 
 import (
+	"context"
 	"fmt"
 	"github.com/badoux/checkmail"
+	"github.com/linksoft-dev/single/comps/go/i18n"
 	"github.com/rodrigorodriguescosta/govalidator"
 	"golang.org/x/text/language"
 	"strconv"
@@ -10,19 +12,25 @@ import (
 	"time"
 )
 
+type errorCode string
+
 // all constants for all validations
 const (
-	isByteLength  = "isByteLength"
-	inRangeFloat  = "inRangeFloat"
-	inRangeInt    = "inRangeInt"
-	equalsFloat   = "equalsFloat"
-	isRequired    = "isRequired"
-	isObjectId    = "isObjectId"
-	isEmailValid  = "isEmailValid"
-	isOnlyNumber  = "isOnlyNumber"
-	isGreaterThan = "isGreaterThan"
-	isNotValid    = "isNotValid"
-	isNotUrlValid = "isNotUrlValid"
+	errCodeCustomMessage = "customMessage"
+	errCodeIsIn          = "isIn"
+	isByteLength
+	isByteMinLength
+	isByteMaxLength
+	inRangeFloat
+	inRangeInt
+	equalsFloat
+	isRequired
+	isObjectId
+	isEmailValid
+	isOnlyNumber
+	isGreaterThan
+	isNotValid = "isNotValid"
+	isNotUrlValid
 )
 
 // Constants for time format
@@ -60,16 +68,56 @@ var datetimeCustomFormats = [22]string{
 	ISO8601CompactZ, ISO8601CompactNoTZ, ISO8601YM, SQLTimestamp, SQLTimestampPgTz, DateDMYHM2,
 }
 
-// struct to concat errors validation
+type errorsModel struct {
+	Identification string
+	Validations    []errorModel
+}
+
+type errorModel struct {
+	Code    errorCode
+	Message string
+}
+
+// Validation struct to concat/organize errors validation
 type Validation struct {
-	errors   []string
+	errors   map[string]*errorsModel
 	language language.Tag
 }
 
 func NewValidation(language language.Tag) *Validation {
 	return &Validation{
 		language: language,
+		errors:   map[string]*errorsModel{},
 	}
+}
+
+func New() *Validation {
+	return &Validation{}
+}
+
+func NewWithContext(ctx context.Context) *Validation {
+	v := &Validation{
+		language: language.BrazilianPortuguese,
+	}
+	if lang, ok := ctx.Value("lang").(string); ok {
+		switch lang {
+		case "us_en":
+			v.language = language.English
+		default:
+			v.language = language.BrazilianPortuguese
+		}
+	}
+	return v
+}
+
+// ValidateI18nContext validate and try to get the language from the context
+func (v *Validation) Validate() (err error) {
+
+	errs := v.GetErrors()
+	if len(errs) > 0 {
+		return v
+	}
+	return nil
 }
 
 // Error return the error instance
@@ -86,11 +134,16 @@ func (v *Validation) Error() string {
 }
 
 // GetErrors retorna os erros de validacao, após executar essa funcao, os erros são zerados
-func (v *Validation) GetErrors() []string {
+func (v *Validation) GetErrors() (resp []string) {
 	defer func(v *Validation) {
 		v.errors = nil
 	}(v)
-	return v.errors
+	for _, value := range v.errors {
+		for _, val := range value.Validations {
+			resp = append(resp, val.Message)
+		}
+	}
+	return resp
 }
 
 // Validated funcao para retornar se existem erros ou nao
@@ -98,25 +151,39 @@ func (v *Validation) Validated() bool {
 	return len(v.errors) == 0
 }
 
-func (v *Validation) AddMessage(str string, params ...interface{}) {
-	v.errors = append(v.errors, fmt.Sprintf(str, params...))
+// addError private method to add a structured error validation, using map to group errors by identifiers
+func (v *Validation) addError(identifier, message string, code errorCode) {
+	errs := v.getErrorByIdentifier(identifier)
+	errs.Validations = append(errs.Validations, errorModel{
+		Code:    code,
+		Message: message,
+	})
 }
 
-// AddErroMessage essa funcao cria uma mensagem de erro baseado no objeto erro
-func (v *Validation) AddErroMessage() {
-	v.errors = append(v.errors, "Ocorreu um erro no sistema e nossa equipe já foi notificada, aguarde que já estamos "+
-		"ciente e já trabalhando na solução.")
+// getErrorByIdentifier return the errorsModel based on error identifier
+func (v *Validation) getErrorByIdentifier(identifier string) errorsModel {
+	if identifier == "" {
+		identifier = "unspecified"
+	}
+	errs := v.errors[identifier]
+	if errs == nil {
+		errs = &errorsModel{
+			Identification: identifier,
+			Validations:    nil,
+		}
+		v.errors[identifier] = errs
+	}
+	return *errs
+}
+func (v *Validation) AddMessage(str string, params ...interface{}) {
+	v.addError("", fmt.Sprintf(str, params...), errCodeCustomMessage)
 }
 
 // AddFirstMessage adiciona uma mensagem para a primeira na lista do slice(array)
 func (v *Validation) AddFirstMessage(str string, params ...interface{}) {
-	newSlice := []string{fmt.Sprintf(str, params...)}
-	v.errors = append(newSlice, v.errors...)
-}
-
-// SetLastMessage altera a ultima mensagem de validacao
-func (v *Validation) SetLastMessage(msg string) {
-	v.errors[len(v.errors)-1] = msg
+	v.addError("", fmt.Sprintf(str, params...), errCodeCustomMessage)
+	errs := v.getErrorByIdentifier("")
+	errs.Validations = append(errs.Validations, errs.Validations...)
 }
 
 func (v *Validation) IsIn(msg string, str string, params ...string) bool {
@@ -130,84 +197,104 @@ func (v *Validation) IsIn(msg string, str string, params ...string) bool {
 			strings.Join(params, ","),
 			str)
 	}
-	v.errors = append(v.errors, msg)
+	v.addError("", msg, errCodeIsIn)
 	return false
 }
 
 // IsByteLength check length of the string, if the string is empty, skip the validation
-func (v *Validation) IsByteLength(msg, str string, min, max int) bool {
+func (v *Validation) IsByteLength(identification, str string, min, max int) bool {
 	if str != "" {
 		if !IsByteLength(str, min, max) {
-			msg = fmt.Sprintf(v.getMessage(isByteLength), msg, str, min, max, len(str))
-			v.errors = append(v.errors, msg)
+			msg := i18n.GetMessage(v.language, isByteLength, i18nMessages{Name: identification, Value1: min, Value2: max, CurrentValue: len(str)})
+			v.addError("", msg, isByteLength)
 			return false
 		}
 	}
 	return true
 }
 
+func (v *Validation) IsByteLtLength(identification, str string, min int) bool {
+	if str != "" {
+		if len(str) < min {
+			msg := i18n.GetMessage(v.language, isByteMinLength, i18nMessages{Name: identification, Value1: min, CurrentValue: len(str)})
+			v.addError("", msg, isByteMinLength)
+		}
+	}
+	return true
+}
+
+func (v *Validation) IsByteGLtLength(identification, str string, min int) bool {
+	if str != "" {
+		if len(str) < min {
+			msg := i18n.GetMessage(v.language, isByteMaxLength, i18nMessages{Name: identification, Value1: min, CurrentValue: len(str)})
+			v.addError("", msg, isByteMaxLength)
+		}
+	}
+	return true
+}
+
 // EqualsFloat verifica se os valores recebidos são iguais
-func (v *Validation) EqualsFloat(msg string, value, equalValue float64) bool {
+func (v *Validation) EqualsFloat(identification string, value, equalValue float64) bool {
 	if value != equalValue {
-		msg = fmt.Sprintf(v.getMessage(equalsFloat), msg, equalValue, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, equalsFloat, i18nMessages{Name: identification, Value: value, CurrentValue: equalValue})
+		v.addError("", msg, equalsFloat)
 		return false
 	}
 	return true
 }
 
-func (v *Validation) InRangeFloat32(msg string, value, min, max float32) bool {
+func (v *Validation) InRangeFloat32(identification string, value, min, max float32) bool {
 	if !govalidator.InRangeFloat32(value, min, max) {
-		msg = fmt.Sprintf(v.getMessage(inRangeFloat), msg, min, max, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, inRangeFloat, i18nMessages{Name: identification, Value1: min, Value2: max, CurrentValue: value})
+		v.addError("", msg, inRangeFloat)
 		return false
 	}
 	return true
 }
 
-func (v *Validation) InRangeFloat64(msg string, value, min, max float64) bool {
+func (v *Validation) InRangeFloat64(identification string, value, min, max float64) bool {
 	if !govalidator.InRangeFloat64(value, min, max) {
-		msg = fmt.Sprintf(v.getMessage(inRangeFloat), msg, min, max, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, inRangeFloat, i18nMessages{Name: identification, Value1: min, Value2: max, CurrentValue: value})
+		v.addError("", msg, inRangeFloat)
 		return false
 	}
 	return true
 }
 
-func (v *Validation) InRangeInt(msg string, value, min, max int) bool {
+func (v *Validation) InRangeInt(identification string, value, min, max int) bool {
 	if !govalidator.InRangeInt(value, min, max) {
-		msg = fmt.Sprintf(v.getMessage(inRangeInt), msg, min, max, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, inRangeInt, i18nMessages{Name: identification, Value1: min, Value2: max, CurrentValue: value})
+		v.addError("", msg, inRangeInt)
 		return false
 	}
 	return true
 }
 
 // isGreaterThanFloat64 check if int value is greater than
-func (v *Validation) IsGTFloat64(msg string, value, min float64) bool {
+func (v *Validation) IsGTFloat64(identification string, value, min float64) bool {
 	if value < min {
-		msg = fmt.Sprintf(v.getMessage(isGreaterThan), msg, strconv.FormatFloat(min, 'f', -1, 64))
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isGreaterThan, i18nMessages{Name: identification, Value: min})
+		v.addError("", msg, isGreaterThan)
 		return false
 	}
 	return true
 }
 
 // isGreaterThanInt check if int value is greater than
-func (v *Validation) IsGTInt(msg string, value, min int) bool {
+func (v *Validation) IsGTInt(identification string, value, min int) bool {
 	if value < min {
-		msg = fmt.Sprintf(v.getMessage(isGreaterThan), msg, strconv.Itoa(value))
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isGreaterThan, i18nMessages{Name: identification, Value: min})
+		v.addError("", msg, isGreaterThan)
 		return false
 	}
 	return true
 }
 
 // isGreaterThanInt check if int value is greater than
-func (v *Validation) IsGTTime(msg string, value, min time.Time) bool {
+func (v *Validation) IsGTTime(identification string, value, min time.Time) bool {
 	if value.Before(min) {
-		msg = fmt.Sprintf(v.getMessage(isGreaterThan), msg, min, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isGreaterThan, i18nMessages{Name: identification, Value: min})
+		v.addError("", msg, isGreaterThan)
 		return false
 	}
 	return true
@@ -215,8 +302,8 @@ func (v *Validation) IsGTTime(msg string, value, min time.Time) bool {
 
 func (v *Validation) IsObjectId(fieldName string, value string) bool {
 	if !govalidator.IsMongoID(value) {
-		msg := fmt.Sprintf(v.getMessage(isObjectId), fieldName)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isObjectId, i18nMessages{Name: fieldName})
+		v.addError("", msg, isObjectId)
 		return false
 	}
 	return true
@@ -225,8 +312,8 @@ func (v *Validation) IsObjectId(fieldName string, value string) bool {
 // IsFilled check if field has a value, if so, check the length
 func (v *Validation) IsFilled(fieldName string, value string, min, max int) bool {
 	if govalidator.IsNull(value) {
-		msg := fmt.Sprintf(v.getMessage(isRequired), fieldName)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isRequired, i18nMessages{Name: fieldName})
+		v.addError("", msg, isRequired)
 		return false
 	}
 	return v.IsByteLength(fieldName, value, min, max)
@@ -235,8 +322,8 @@ func (v *Validation) IsFilled(fieldName string, value string, min, max int) bool
 // IsFilledTime verifica se um valor do tipo time foi preenchido
 func (v *Validation) IsFilledTime(fieldName string, value time.Time) bool {
 	if value.IsZero() {
-		msg := fmt.Sprintf(v.getMessage(isRequired), fieldName)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isRequired, i18nMessages{Name: fieldName})
+		v.addError("", msg, isRequired)
 		return false
 	}
 	return true
@@ -255,8 +342,8 @@ func (v *Validation) IsObjectIdAndFilled(fieldName string, value string) bool {
 
 func (v *Validation) IsValidEmailFormat(fieldName string, value string) bool {
 	if !IsEmailValid(value) {
-		msg := fmt.Sprintf(v.getMessage(isEmailValid), fieldName, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isEmailValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isEmailValid)
 	}
 	return true
 }
@@ -265,8 +352,8 @@ func (v *Validation) IsValidEmailFormat(fieldName string, value string) bool {
 func (v *Validation) IsOnlyNumber(fieldName, str string) bool {
 	onlyNumber := IsOnlyNumber(str)
 	if !onlyNumber {
-		msg := fmt.Sprintf(v.getMessage(isOnlyNumber), fieldName)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isOnlyNumber, i18nMessages{Name: fieldName})
+		v.addError("", msg, isOnlyNumber)
 	}
 	return onlyNumber
 }
@@ -278,8 +365,8 @@ func (v *Validation) IsCpfCnpjValid(fieldName, value string) bool {
 		valid = IsCnpjValid(value)
 	}
 	if !valid {
-		msg := fmt.Sprintf(v.getMessage(isNotValid), fieldName, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isNotValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isNotValid)
 	}
 	return valid
 }
@@ -287,8 +374,8 @@ func (v *Validation) IsCpfCnpjValid(fieldName, value string) bool {
 func (v *Validation) IsCpfValid(fieldName, value string) bool {
 	valid := IsCpfValid(value)
 	if !valid {
-		msg := fmt.Sprintf(v.getMessage(isNotValid), fieldName, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isNotValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isNotValid)
 	}
 	return valid
 }
@@ -296,17 +383,10 @@ func (v *Validation) IsCpfValid(fieldName, value string) bool {
 func (v *Validation) IsCnpjValid(fieldName, value string) bool {
 	valid := IsCnpjValid(value)
 	if !valid {
-		msg := fmt.Sprintf(v.getMessage(isNotValid), fieldName, value)
-		v.errors = append(v.errors, msg)
+		msg := i18n.GetMessage(v.language, isNotValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isNotValid)
 	}
 	return valid
-}
-
-func (v *Validation) getMessage(messageId string) string {
-	switch lang := v.language; lang {
-	default:
-		return messagesPtBR[messageId]
-	}
 }
 
 // IsInt Verifica se a string passada é um numero inteiro
@@ -331,7 +411,8 @@ func (v *Validation) IsDateTime(datetime string) bool {
 func (v *Validation) IsStateBR(fieldName, value string) bool {
 	isValid := IsStateBR(value)
 	if !isValid {
-		v.errors = append(v.errors, fmt.Sprintf(v.getMessage(isNotValid), fieldName, value))
+		msg := i18n.GetMessage(v.language, isNotValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isNotValid)
 	}
 	return isValid
 }
@@ -340,7 +421,8 @@ func (v *Validation) IsStateBR(fieldName, value string) bool {
 func (v *Validation) IsUrl(fieldName, value string) bool {
 	isValid := govalidator.IsURL(value)
 	if !isValid {
-		v.errors = append(v.errors, fmt.Sprintf(v.getMessage(isNotUrlValid), fieldName, value))
+		msg := i18n.GetMessage(v.language, isNotUrlValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isNotUrlValid)
 	}
 	return isValid
 }
@@ -349,7 +431,8 @@ func (v *Validation) IsUrl(fieldName, value string) bool {
 func (v *Validation) IsUUID(fieldName, value string) bool {
 	isValid := govalidator.IsUUID(value)
 	if !isValid {
-		v.errors = append(v.errors, fmt.Sprintf(v.getMessage(isNotValid), fieldName, value))
+		msg := i18n.GetMessage(v.language, isNotValid, i18nMessages{Name: fieldName, Value: value})
+		v.addError("", msg, isNotValid)
 	}
 	return isValid
 }
@@ -386,7 +469,8 @@ func (v *Validation) IsCreditCardNumber(fieldName, number string) bool {
 
 	isValid := sum%10 == 0
 	if !isValid {
-		v.errors = append(v.errors, fmt.Sprintf(v.getMessage(isNotValid), fieldName, number))
+		msg := i18n.GetMessage(v.language, isNotValid, i18nMessages{Name: fieldName, Value: number})
+		v.addError("", msg, isNotValid)
 	}
 
 	return isValid

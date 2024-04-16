@@ -3,9 +3,28 @@ syntax = "proto3";
 package service;
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/linksoft-dev/single/comps/go/grpc/plugins/service";
+option go_package = "github.com/linksoft-dev/single/comps/go/grpc/plugins/service/pb";
 
 extend google.protobuf.MessageOptions {
   bool crud = 1000;
+  // this field is used to generate the table name
+  string tableName = 1001;
 }
 
+extend google.protobuf.FieldOptions {
+  Field field = 1001;
+}
+
+enum Boolean {
+  UNSPECIFIED = 0;
+  YES = 1;
+  NO = 2;
+}
+
+message Field {
+  Boolean upperNoSpaceNoAccent = 1;
+  Boolean upperCase = 2;
+  Boolean trimSpace = 3;
+  Boolean removeAccent = 4;
+
+}

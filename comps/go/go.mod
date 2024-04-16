@@ -34,14 +34,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.19.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20220823124025-807a23277127
-	golang.org/x/sync v0.3.0
 	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.58.0
 	google.golang.org/protobuf v1.31.0
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5
-	gorm.io/plugin/opentelemetry v0.1.4
 )
 
 require (
