@@ -136,7 +136,7 @@ func (v *Validation) Error() string {
 // GetErrors retorna os erros de validacao, após executar essa funcao, os erros são zerados
 func (v *Validation) GetErrors() (resp []string) {
 	defer func(v *Validation) {
-		v.errors = nil
+		v.errors = map[string]*errorsModel{}
 	}(v)
 	for _, value := range v.errors {
 		for _, val := range value.Validations {
