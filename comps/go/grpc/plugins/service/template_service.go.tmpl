@@ -112,13 +112,20 @@ func (s *{{.MessageName}}Server) List(ctx context.Context, req *List{{.MessageNa
     if req == nil {
        req = &List{{.MessageName}}Request{}
     }
-	list, err := s.dao.List(ctx, *req.Filter)
-	if err != nil {
+		if req.Filter == nil {
+			req.Filter = &filter.Filter{}
+		}
+		if len(req.Ids) > 0 {
+			req.Filter.Ids = req.Ids
+		}
+		list, err := s.dao.List(ctx, *req.Filter)
+		if err != nil {
 		return nil, err
 	}
-	return &List{{.MessageName}}Response{ {{.MessageName}}s: list}, nil
+		return &List{{.MessageName}}Response{ {{.MessageName}}s: list}, nil
 }
 
+{{/* not needed for now
 func (s *{{.MessageName}}Server) Get(ctx context.Context, req *Get{{.MessageName}}Request) (*Get{{.MessageName}}Response, error) {
     if req == nil {
        req = &Get{{.MessageName}}Request{}
@@ -133,6 +140,7 @@ func (s *{{.MessageName}}Server) Get(ctx context.Context, req *Get{{.MessageName
     }
 	return &Get{{.MessageName}}Response{ {{.MessageName}}: list[0]}, nil
 }
+*/}}
 
 // inputParse{{.MessageName}} perform some transformation/normalization over the object for type {{.MessageName}}
 func InputParse{{.MessageName}}(v {{.MessageName}}) {{.MessageName}} {

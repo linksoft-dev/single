@@ -23,6 +23,7 @@ require (
 	github.com/lyft/protoc-gen-star v0.6.2
 	github.com/osamingo/checkdigit v1.0.1
 	github.com/rodrigorodriguescosta/govalidator v0.0.0-20190424111038-f61b66f89f4a
+	github.com/rs/cors v1.10.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.9.2

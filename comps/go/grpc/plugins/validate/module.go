@@ -91,7 +91,6 @@ func (m *module) generateValidation(msg pgs.Message, f pgs.File) {
 	if len(data.Fields) == 0 {
 		return
 	}
-	data.Fields[0].Field.Type()
 	funcMap := &template.FuncMap{
 		"toCamel": str.ToCamel,
 		"toInt":   obj.ToInt,
