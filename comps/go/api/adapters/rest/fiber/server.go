@@ -97,12 +97,17 @@ func (g *Adapter) Run() error {
 					rootMutation.AddFieldConfig(key, value)
 				}
 			}
+			app.BeforeStart()
 		}
 		createGraphQlSchema()
 		fiberGraphQLHandler(apiGroup)
 		go func() {
 			log.Fatal(fiberApp.Listen(":" + g.port))
 		}()
+
+		for _, app := range g.apps {
+			app.AfterStart()
+		}
 
 		// test server connection
 		for {
