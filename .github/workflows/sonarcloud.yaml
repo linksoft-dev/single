@@ -24,3 +24,7 @@ jobs:
           -Dsonar.exclusions=**/*.py,**/*.xsd,**/*.xml,**/*.mod;**/*.sum,**/*.bat,**/*.sh,**/*.json
           -Dsonar.test.inclusions=**/*_test.go
           -Dsonar.cpd.exclusions=
+          -Dsonar.c.file.suffixes=-
+          -Dsonar.cpp.file.suffixes=-
+          -Dsonar.objc.file.suffixes=-
+
