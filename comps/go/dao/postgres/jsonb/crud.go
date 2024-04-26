@@ -393,13 +393,13 @@ func setWhere(sb *sqlbuilder.SelectBuilder, f filter.Filter, resourceName string
 					}
 					c.Value = val.Format("2006-01-02T15:04:05")
 				case bool:
-					c.Value = fmt.Sprintf("%t", c.Value)
+					c.Value = fmt.Sprintf("%s", c.Value)
 				case float64:
 					c.FieldName = fmt.Sprintf("COALESCE((%s)::float, 0) %s", c.FieldName, c.Operator)
-					c.Value = fmt.Sprintf("%f", c.Value)
+					c.Value = fmt.Sprintf("%s", c.Value)
 				case int:
 					c.FieldName = fmt.Sprintf("COALESCE((%s)::integer, 0) %s", c.FieldName, c.Operator)
-					c.Value = fmt.Sprintf("%d", c.Value)
+					c.Value = fmt.Sprintf("%s", c.Value)
 				}
 
 				switch c.Operator {
