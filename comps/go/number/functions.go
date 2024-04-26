@@ -49,8 +49,12 @@ const (
 
 // RoundFloat returns float value with precision passed by parameter
 func RoundFloat(v float64, precision int) float64 {
-	if precision <= 0 {
-		precision = 1
+	if precision < 0 {
+		precision = 0
+	}
+	if precision == 0 {
+		v = float64(int(v))
+		return v
 	}
 	format := strings.Replace("%.precisionf", "precision", strconv.Itoa(precision), precision)
 	value := fmt.Sprintf(format, v)

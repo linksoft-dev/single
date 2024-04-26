@@ -82,9 +82,9 @@ func TestRoundFloat(t *testing.T) {
 	}{
 		{Name: "Pi with 2 decimal places", Value: 3.14159, Precision: 2, Expected: 3.14},
 		{Name: "Float with 1 decimal place", Value: 6.666, Precision: 1, Expected: 6.7},
-		{Name: "Large float with no decimal places", Value: 123456.789, Precision: 0, Expected: 123456},
+		{Name: "Large float with no decimal places", Value: 123456.789, Precision: 0, Expected: 123456.0},
 		{Name: "Float with 3 decimal places", Value: 0.987654, Precision: 3, Expected: 0.988},
-		{Name: "Float with negative precision", Value: 8.999, Precision: -1, Expected: 9.0}, // Precision default to 1
+		{Name: "Float with negative precision", Value: 8.999, Precision: -1, Expected: 8.0},
 		{Name: "Integer with no decimal places", Value: 42, Precision: 0, Expected: 42.0},
 		{Name: "Float with 1 decimal place", Value: 7.1, Precision: 1, Expected: 7.1},
 		{Name: "Float with 2 decimal places", Value: 99.99, Precision: 2, Expected: 99.99},
