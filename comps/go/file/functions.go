@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -442,4 +443,17 @@ func GetFileSizeFromBase64(fileBase64 string) int {
 // removeXmlVersion remove a string da versao do xml, pois quando gera esta vindo essa string
 func RemoveXmlVersion(xmlString string) string {
 	return strings.ReplaceAll(xmlString, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+}
+
+func ConvertJsonFieldToSnakeCase(jsonstr string) string {
+	re := regexp.MustCompile(`"([^"]+)":`)
+	matches := re.FindAllStringSubmatch(jsonstr, -1)
+	for _, match := range matches {
+		if len(match) > 1 {
+			originField := match[1]
+			snakeCase := str.ToSnakeCase(match[1])
+			jsonstr = strings.ReplaceAll(jsonstr, originField, snakeCase)
+		}
+	}
+	return jsonstr
 }
