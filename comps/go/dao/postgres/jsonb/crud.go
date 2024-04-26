@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/linksoft-dev/single/comps/go/dao"
 	"github.com/linksoft-dev/single/comps/go/db"
+	"github.com/linksoft-dev/single/comps/go/file"
 	"github.com/linksoft-dev/single/comps/go/filter"
 	"github.com/linksoft-dev/single/comps/go/obj"
 	log "github.com/sirupsen/logrus"
@@ -28,6 +29,11 @@ const (
 
 var tracer trace.Tracer
 
+type Options struct {
+	// FieldSnakeCase set true to convert the fields to snake case before marhsal process
+	FieldSnakeCase bool
+}
+
 func init() {
 	tracer = otel.GetTracerProvider().Tracer("single/dao/postgres/jsonb")
 }
@@ -39,6 +45,7 @@ func NewDataBase[T dao.ObjI[T]](dbConnection *gorm.DB, tableName string) *Databa
 	return &Database[T]{
 		db:        dbConnection,
 		tableName: tableName,
+		Option:    Options{FieldSnakeCase: true},
 	}
 }
 
@@ -55,6 +62,7 @@ type Database[T dao.ObjI[T]] struct {
 	tableName string
 	db        *gorm.DB
 	tx        *gorm.DB // save connection when is transacation
+	Option    Options
 }
 
 type crudData struct {
@@ -230,14 +238,14 @@ func (d *Database[T]) List(ctx context.Context, f filter.Filter) (records []T, e
 	}
 
 	ctx, spanParent := tracer.Start(ctx, "dao/postgres/jsonb/Find/unmarshalDocs")
-	err = unmarshalDocs(docs, &records)
+	err = unmarshalDocs(docs, &records, d.Option.FieldSnakeCase)
 	spanParent.End()
 	return
 }
 
 // unmarshalDocs given the docs, return list of T records, this function concat all docs into list of strings
 // then perform unmarshal at once to a list of T structs
-func unmarshalDocs[T any](docs []Doc, records *[]T) error {
+func unmarshalDocs[T any](docs []Doc, records *[]T, snakeCase bool) error {
 	var sb strings.Builder
 	sb.WriteString("[")
 	for _, value := range docs {
@@ -247,6 +255,9 @@ func unmarshalDocs[T any](docs []Doc, records *[]T) error {
 	str := sb.String()
 	str = strings.TrimSuffix(str, ",")
 	str += "]"
+	if snakeCase {
+		str = file.ConvertJsonFieldToSnakeCase(str)
+	}
 	return json.Unmarshal([]byte(str), records)
 }
 
