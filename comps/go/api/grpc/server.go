@@ -59,7 +59,7 @@ func internalInterceptor(ctx context.Context,
 
 func StartGrpcServer(port string, services ...Services) error {
 	if port == "" {
-		log.Fatal("Grpc por was not provied ")
+		port = "8080"
 	}
 	var err error
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
