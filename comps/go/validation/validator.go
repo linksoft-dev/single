@@ -18,19 +18,19 @@ type errorCode string
 const (
 	errCodeCustomMessage = "customMessage"
 	errCodeIsIn          = "isIn"
-	isByteLength
-	isByteMinLength
-	isByteMaxLength
-	inRangeFloat
-	inRangeInt
-	equalsFloat
-	isRequired
-	isObjectId
-	isEmailValid
-	isOnlyNumber
-	isGreaterThan
-	isNotValid = "isNotValid"
-	isNotUrlValid
+	isByteLength         = "isByteLength"
+	isByteMinLength      = "isByteMinLength"
+	isByteMaxLength      = "isByteMaxLength"
+	inRangeFloat         = "inRangeFloat"
+	inRangeInt           = "inRangeInt"
+	equalsFloat          = "equalsFloat"
+	isRequired           = "isRequired"
+	isObjectId           = "isObjectId"
+	isEmailValid         = "isEmailValid"
+	isOnlyNumber         = "isOnlyNumber"
+	isGreaterThan        = "isGreaterThan"
+	isNotValid           = "isNotValid"
+	isNotUrlValid        = "isNotUrlValid"
 )
 
 // Constants for time format
@@ -158,13 +158,11 @@ func (v *Validation) addError(identifier, message string, code errorCode) {
 		Code:    code,
 		Message: message,
 	})
+	v.errors[identifier] = errs
 }
 
 // getErrorByIdentifier return the errorsModel based on error identifier
-func (v *Validation) getErrorByIdentifier(identifier string) errorsModel {
-	if identifier == "" {
-		identifier = "unspecified"
-	}
+func (v *Validation) getErrorByIdentifier(identifier string) *errorsModel {
 	errs := v.errors[identifier]
 	if errs == nil {
 		errs = &errorsModel{
@@ -173,8 +171,9 @@ func (v *Validation) getErrorByIdentifier(identifier string) errorsModel {
 		}
 		v.errors[identifier] = errs
 	}
-	return *errs
+	return errs
 }
+
 func (v *Validation) AddMessage(str string, params ...interface{}) {
 	v.addError("", fmt.Sprintf(str, params...), errCodeCustomMessage)
 }
@@ -184,6 +183,7 @@ func (v *Validation) AddFirstMessage(str string, params ...interface{}) {
 	v.addError("", fmt.Sprintf(str, params...), errCodeCustomMessage)
 	errs := v.getErrorByIdentifier("")
 	errs.Validations = append(errs.Validations, errs.Validations...)
+	v.errors[""] = errs
 }
 
 func (v *Validation) IsIn(msg string, str string, params ...string) bool {
